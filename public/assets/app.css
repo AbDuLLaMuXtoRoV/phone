@@ -694,3 +694,5 @@ body.is-focus .toast { bottom: calc(96px + env(safe-area-inset-bottom)); }
   /* With a mouse, sideways-scrolling chip rows are awkward: wrap them instead. */
   .chips-scroll { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
 }
+.series-filter { margin-bottom: 6px; }
+.series-filter .chip { cursor: pointer; }

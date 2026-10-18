@@ -137,10 +137,27 @@ document.addEventListener('click', (e) => {
 
 // ---------- model step ----------
 const search = $('[data-model-search]');
+let series = $('[data-series].is-on')?.dataset.series || '';
+function setSeries(s) {
+  series = s;
+  for (const c of $$('[data-series]')) {
+    const on = c.dataset.series === s;
+    c.classList.toggle('is-on', on);
+    c.setAttribute('aria-pressed', String(on));
+  }
+}
+$$('[data-series]').forEach((c) => c.addEventListener('click', () => {
+  setSeries(c.dataset.series);
+  search.value = '';
+  filterModels();
+}));
 function filterModels() {
   const words = fold(search.value).replace(/iphone|айфон|ayfon/g, ' ').split(' ').filter(Boolean);
+  // Typing searches every series, so "13 pro" is found even when "iPhone 15" was picked on the home page.
+  if (words.length && series) setSeries('');
   let any = false;
   for (const g of $$('[data-group]')) {
+    if (series && g.dataset.series !== series) { g.hidden = true; continue; }
     let n = 0;
     for (const opt of $$('.model-opt', g)) {
       const hay = ` ${opt.dataset.name}`;
@@ -470,7 +487,13 @@ if (boot.preModel) {
 } else if (draft) restoreDraft(draft);
 applyConditions();
 markChecked();
-if (search.value) filterModels();
+if (search.value || series) filterModels();
+// Arriving from a home-page series chip: make sure the active filter chip is visible in its scrolling row.
+const seriesRow = $('.series-filter');
+const activeChip = seriesRow?.querySelector('.is-on');
+if (activeChip && series) {
+  seriesRow.scrollLeft += activeChip.getBoundingClientRect().left - seriesRow.getBoundingClientRect().left - (seriesRow.clientWidth - activeChip.offsetWidth) / 2;
+}
 
 const startAt = boot.preModel ? 'config' : (location.hash.slice(1) || 'model');
 history.replaceState({ step: 'model' }, '', location.pathname + location.search + '#model');

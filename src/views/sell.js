@@ -24,7 +24,7 @@ const STEPS = [
   ['screen', 'Ekran va batareya'], ['faults', 'Funksiyalar'], ['parts', 'Qismlar'], ['result', 'Narx'], ['details', 'Eʼlon'],
 ];
 
-export function sellPage({ preModel, q }) {
+export function sellPage({ preModel, preSeries, q }) {
   const clientCatalog = MODELS_NEWEST.map(({ id, name, series, year, bio, glassBack, trueTone, cameraButton, esimQ, cam, colors, storages, deductions, tiers, scrap }) =>
     ({ id, name, series, year, bio, glassBack, trueTone, cameraButton, esimQ, cam, colors, storages, deductions, tiers, scrap }));
   const boot = { models: clientCatalog, settings: config.pricing, steps: STEPS, preModel: preModel || null, maxPhotos: config.maxPhotos };
@@ -51,8 +51,12 @@ export function sellPage({ preModel, q }) {
         ${icon('search')}
         <input type="search" data-model-search value="${q || ''}" placeholder="Masalan: 13 Pro Max" aria-label="Model qidirish" autocomplete="off">
       </label>
+      <div class="chips chips-scroll series-filter" role="group" aria-label="Seriya boʻyicha filtr">
+        <button type="button" class="chip${preSeries ? '' : ' is-on'}" data-series="" aria-pressed="${preSeries ? 'false' : 'true'}">Barchasi</button>
+        ${SERIES.map((s) => html`<button type="button" class="chip${preSeries === s ? ' is-on' : ''}" data-series="${s}" aria-pressed="${preSeries === s ? 'true' : 'false'}">${seriesLabel(s)}</button>`)}
+      </div>
       <div class="model-list" role="radiogroup" aria-label="Modellar">
-        ${SERIES.map((s) => html`<div class="model-group" data-group>
+        ${SERIES.map((s) => html`<div class="model-group" data-group data-series="${s}" ${raw(preSeries && preSeries !== s ? 'hidden' : '')}>
           <h2 class="model-group-h">${seriesLabel(s)}</h2>
           ${MODELS_NEWEST.filter((m) => m.series === s).map((m) => {
             const span = priceSpan(m);

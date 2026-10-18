@@ -22,9 +22,15 @@ export const MODELS = prices.models.map((m) => {
   };
 });
 
-// Newest first for every list shown to people.
-export const MODELS_NEWEST = [...MODELS].sort((a, b) => b.year - a.year || MODELS.indexOf(b) - MODELS.indexOf(a));
-export const SERIES = [...new Set(MODELS_NEWEST.map((m) => m.series))].sort((a, b) => (a === 'SE') - (b === 'SE'));
+// Order for every list shown to people: newest series first (SE last), and inside a series
+// Pro Max → Pro → Air → Plus → base → mini/e, so the cheaper side models never top the list.
+const seriesRank = (s) => (s === 'SE' ? -1 : s === 'X' ? 10 : parseInt(s, 10) || 0);
+const tier = (name) => (/Pro Max/.test(name) ? 0 : /Pro/.test(name) ? 1 : /Air/.test(name) ? 2
+  : /Plus|Max/.test(name) ? 3 : /mini|\de$/.test(name) ? 5 : 4);
+export const MODELS_NEWEST = [...MODELS].sort((a, b) =>
+  seriesRank(b.series) - seriesRank(a.series) || tier(a.name) - tier(b.name) || b.year - a.year
+  || MODELS.indexOf(b) - MODELS.indexOf(a));
+export const SERIES = [...new Set(MODELS_NEWEST.map((m) => m.series))];
 export const seriesLabel = (s) => (s === 'SE' ? 'iPhone SE' : `iPhone ${s}`);
 export const byId = (id) => MODELS.find((m) => m.id === id);
 export const PRICE_SOURCE = { file: prices.source, importedAt: prices.importedAt };

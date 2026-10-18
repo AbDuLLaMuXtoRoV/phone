@@ -7,7 +7,8 @@ import { GRADES } from '../../public/assets/questions.js';
 import { estimate } from '../../public/assets/pricing.js';
 import config from '../config.js';
 
-const POPULAR = ['iphone-17-pro-max', 'iphone-16-pro', 'iphone-15-pro-max', 'iphone-15', 'iphone-14-pro', 'iphone-13', 'iphone-12', 'iphone-11'];
+// Quick picks under the hero search: whole series; the exact model (Pro, Pro Max…) is chosen on the next screen.
+const HERO_SERIES = ['17', '16', '15', '14', '13', '12', '11'];
 
 const FAQ = [
   ['Narx qanday hisoblanadi?', 'Har bir model va xotira hajmi uchun holat darajasi (A, A−, B+, B) boʻyicha asosiy narx olinadi. Soʻng har bir nosozlik uchun belgilangan summa ayiriladi: singan oyna, ishlamaydigan Face ID, almashtirilgan qismlar va hokazo. Hisob-kitobning har bir qatori sizga koʻrsatiladi.'],
@@ -35,8 +36,8 @@ export function homePage({ latest, total }) {
         <input name="q" type="search" placeholder="Masalan: 13 Pro" aria-label="Telefon modeli" enterkeyhint="go" autocomplete="off">
         <button class="btn btn-primary" type="submit">Baholash</button>
       </form>
-      <div class="chips chips-scroll" aria-label="Ommabop modellar">
-        ${POPULAR.map((id) => byId(id)).filter(Boolean).map((m) => html`<a class="chip" href="/sotish?model=${m.id}">${m.name.replace('iPhone ', '')}</a>`)}
+      <div class="chips chips-scroll" aria-label="Seriyani tanlang">
+        ${HERO_SERIES.filter((s) => SERIES.includes(s)).map((s) => html`<a class="chip" href="/sotish?series=${s}">${seriesLabel(s)}</a>`)}
       </div>
       <a class="hero-alt" href="/telefonlar">Telefon sotib olmoqchimisiz? <b>${total} ta eʼlonni koʻring</b> ${icon('right')}</a>
     </div>

@@ -7,7 +7,7 @@ import { networkInterfaces } from 'node:os';
 
 import config from './src/config.js';
 import { ROOT } from './src/paths.js';
-import { byId, MODELS } from './src/catalog.js';
+import { byId, MODELS, SERIES } from './src/catalog.js';
 import * as db from './src/db.js';
 import { seedIfEmpty } from './src/seed.js';
 import { estimate, conditionGrade } from './public/assets/pricing.js';
@@ -234,7 +234,11 @@ async function route(req, res) {
     return sendHtml(req, res, listingPage({ l, similar: db.similar(l.model_id, l.series, l.id), isNew: q.new === '1' }));
   }
   if (isGet && p === '/sotish') {
-    return sendHtml(req, res, sellPage({ preModel: byId(q.model) ? q.model : null, q: clean(q.q, 40) }));
+    return sendHtml(req, res, sellPage({
+      preModel: byId(q.model) ? q.model : null,
+      preSeries: SERIES.includes(q.series) ? q.series : null,
+      q: clean(q.q, 40),
+    }));
   }
   if (isGet && p === '/narxlar') return sendHtml(req, res, pricesPage());
   if (isGet && p === '/sevimlilar') {
