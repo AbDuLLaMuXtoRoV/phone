@@ -117,6 +117,15 @@ function sanitizeAnswers(input, model) {
   return out;
 }
 
+// Behind a tunnel or reverse proxy every request arrives from the proxy, so read the visitor's address from
+// its header. Headers are only trusted when the direct peer is this machine (a local tunnel such as
+// cloudflared) or TRUST_PROXY=1 is set (a hosting platform's load balancer).
+function clientIp(req) {
+  const direct = req.socket.remoteAddress || '';
+  if (!config.trustProxy && !/^(::1|127\.|::ffff:127\.)/.test(direct)) return direct;
+  return req.headers['cf-connecting-ip'] || String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || direct;
+}
+
 // Simple abuse guard: at most 10 published listings per hour per IP. Failed attempts are not counted,
 // so someone fixing a validation error is never locked out.
 const createHits = new Map(); // ip -> timestamps of successful creates
@@ -140,7 +149,7 @@ function decodePhoto(dataUrl) {
 }
 
 async function createListing(req, res) {
-  const ip = req.socket.remoteAddress;
+  const ip = clientIp(req);
   checkRate(ip);
   const b = await readJson(req);
   const model = byId(b.model);

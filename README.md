@@ -27,6 +27,17 @@ On first start the database (`data/app.db`) is created with 18 demo listings. De
 | `KRW_TO_UZS` | `8.5` | 1 KRW in soʻm. Published rates were 8.4–9.1 in Aug–Oct 2026; update when it moves. |
 | `PRICE_MULTIPLIER` | `1` | The list is a Korean **dealer buy-back** list, so 1 = buy-back level. Private sales in Uzbekistan are usually higher; e.g. `1.25` raises every estimate by 25%. |
 | `SITE_NAME` | `Fonbozor` | Brand name shown on the site |
+| `TRUST_PROXY` | off | Set to `1` on hosting behind a load balancer (Render, Railway…) so per-visitor limits use the real IP. Not needed for a local Cloudflare tunnel. |
+
+### Showing the demo to others
+
+```powershell
+npm start
+C:\Users\abdul\tools\cloudflared\cloudflared.exe tunnel --no-autoupdate --url http://localhost:3000
+```
+
+The tunnel prints a public `https://….trycloudflare.com` address. It works while both commands run and this
+computer is awake, and the address changes on every restart.
 
 Example: `PRICE_MULTIPLIER=1.2 KRW_TO_UZS=8.7 npm start` (PowerShell: `$env:PRICE_MULTIPLIER=1.2; npm start`).
 

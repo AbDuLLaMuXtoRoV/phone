@@ -5,6 +5,8 @@ export default {
   siteName: env.SITE_NAME || 'Fonbozor',
   port: Number(env.PORT) || 3000,
   host: env.HOST || '0.0.0.0',
+  // Set TRUST_PROXY=1 when hosted behind a platform load balancer (Render, Railway…), so rate limits see real visitors.
+  trustProxy: env.TRUST_PROXY === '1',
 
   pricing: {
     // Price list values are in units of 10,000 KRW.

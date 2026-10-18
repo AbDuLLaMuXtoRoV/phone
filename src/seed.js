@@ -39,7 +39,8 @@ export function seedIfEmpty() {
       model_id: model.id, model_name: model.name, series: model.series, storage, color,
       grade: conditionGrade(answers), battery: answers.battery, answers,
       est_uzs: est.uzs, price_uzs: Math.round((est.uzs * factor) / 50000) * 50000,
-      region, seller_name: name, phone: `+9989000000${String(i + 10).padStart(2, '0')}`, telegram: null,
+      // Operator code 00 does not exist, so a public demo never sends calls to a real person.
+      region, seller_name: name, phone: `+9980000000${String(i + 10).padStart(2, '0')}`, telegram: null,
       description, photos: [], extras, uzimei: i % 4 === 3 ? 'unknown' : 'yes',
       token_hash: createHash('sha256').update(`demo-${i}`).digest('hex'),
       views: 12 + ((i * 37) % 180), created_at: now - hoursAgo * H,
