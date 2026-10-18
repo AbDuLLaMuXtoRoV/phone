@@ -2,16 +2,16 @@ import { html } from '../util.js';
 import { icon } from './icons.js';
 import { layout } from './layout.js';
 import { cards, phoneArt, gradeChip } from './components.js';
-import { MODELS, SERIES, seriesLabel, byId } from '../catalog.js';
+import { MODELS, byId, CATEGORY_SHOWCASE } from '../catalog.js';
 import { GRADE_KEYS } from '../../public/assets/questions.js';
+import { CATEGORY_KEYS } from '../../public/assets/categories.js';
 import { estimate } from '../../public/assets/pricing.js';
 import config from '../config.js';
 
-// Quick picks under the hero search: whole series; the exact model (Pro, Pro Max…) is chosen on the next screen.
-const HERO_SERIES = ['17', '16', '15', '14', '13', '12', '11'];
 const TIP_ICONS = ['shield', 'sim', 'pin', 'alert'];
+const showcaseArt = (cat) => { const [id, color] = CATEGORY_SHOWCASE[cat]; return phoneArt(byId(id), color); };
 
-export function homePage(L, { here, latest, total }) {
+export function homePage(L, { here, latest, total, counts }) {
   const t = L.t;
   const sample = byId('iphone-15-pro-max');
   const sampleEst = estimate(sample, '256 GB', { battery: 93 }, config.pricing);
@@ -31,7 +31,7 @@ export function homePage(L, { here, latest, total }) {
         <button class="btn btn-primary" type="submit">${t.heroBtn}</button>
       </form>
       <div class="chips chips-scroll" aria-label="${t.heroChipsAria}">
-        ${HERO_SERIES.filter((s) => SERIES.includes(s)).map((s) => html`<a class="chip" href="/sell?series=${s}">${seriesLabel(s)}</a>`)}
+        ${CATEGORY_KEYS.map((c) => html`<a class="chip" href="/sell?cat=${c}">${L.cats[c]}</a>`)}
       </div>
       <a class="hero-alt" href="/phones">${t.heroAltText} <b>${t.heroAltLink(total)}</b> ${icon('right')}</a>
     </div>
@@ -64,9 +64,13 @@ export function homePage(L, { here, latest, total }) {
 </section>
 
 <section class="wrap section">
-  <div class="section-head"><h2>${t.seriesTitle}</h2></div>
-  <div class="chips chips-scroll">
-    ${SERIES.map((s) => html`<a class="chip chip-lg" href="/phones?series=${encodeURIComponent(s)}">${seriesLabel(s)}</a>`)}
+  <div class="section-head"><h2>${t.categoriesTitle}</h2></div>
+  <div class="cat-tiles">
+    ${CATEGORY_KEYS.map((c) => html`<a class="cat-tile" href="/phones?cat=${c}">
+      <span class="cat-art">${showcaseArt(c)}</span>
+      <b>${L.cats[c]}</b>
+      <span class="muted small">${t.listingsN(counts[c] || 0)}</span>
+    </a>`)}
   </div>
 </section>
 

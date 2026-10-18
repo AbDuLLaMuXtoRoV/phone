@@ -1,24 +1,29 @@
 import { html, raw, fold } from '../util.js';
 import { icon } from './icons.js';
 import { layout } from './layout.js';
-import { MODELS_NEWEST, SERIES, seriesLabel } from '../catalog.js';
-import { LOOKS, SCREEN, BASIC, FAULTS, PARTS, EXTRAS, UZIMEI, REGIONS, opt, pick } from '../../public/assets/questions.js';
+import { MODELS_NEWEST, SERIES, seriesOf, seriesLabel, catOfSeries } from '../catalog.js';
+import { LOOKS, SCREEN, BASIC, MORE, FAULT_KEYS, PARTS, EXTRAS, UZIMEI, REGIONS, opt, qText, faultText } from '../../public/assets/questions.js';
+import { CATEGORY_KEYS } from '../../public/assets/categories.js';
 import { priceSpan, toUzs } from '../../public/assets/pricing.js';
 import config from '../config.js';
 
 const STEPS = ['model', 'config', 'basic', 'looks', 'screen', 'faults', 'parts', 'result', 'details'];
 
-export function sellPage(L, { here, preModel, preSeries, q }) {
+export function sellPage(L, { here, preModel, preSeries, preCat, q }) {
   const t = L.t;
+  const startCat = preModel?.category || (preSeries && catOfSeries(preSeries)) || preCat || 'iphone';
 
-  // Radio question. `cols` = 2 renders short answers side by side.
-  const question = (name, values, { cols = 1 } = {}) => html`<fieldset class="q" data-q="${name}">
-    <legend>${L.q[name].title}</legend>
-    ${L.q[name].hint ? html`<p class="q-hint">${icon('info')}${L.q[name].hint}</p>` : ''}
-    <div class="opts${cols === 2 ? ' opts-2' : ''}">
+  // Radio question in the default (iPhone) wording; sell.js rewords it for the chosen category.
+  // `values` may be empty when the options depend on the model (filled in by sell.js).
+  const question = (name, values, { cols = 1, cond = '' } = {}) => {
+    const q = qText(L, name, startCat);
+    return html`<fieldset class="q" data-q="${name}" ${raw(cond ? `data-if="${cond}"` : '')}>
+    <legend data-q-title>${q.title}</legend>
+    <p class="q-hint" data-q-hint ${raw(q.hint ? '' : 'hidden')}>${icon('info')}<span>${q.hint || ''}</span></p>
+    <div class="opts${cols === 2 ? ' opts-2' : ''}" data-opts>
       ${values.map((v) => {
-        const o = opt(L, name, v);
-        return html`<label class="opt">
+        const o = opt(L, name, v, startCat);
+        return html`<label class="opt" data-v="${v}">
           <input type="radio" name="${name}" value="${v}" required>
           <span class="opt-box"><span class="opt-t">${o.t}</span>${o.d ? html`<span class="opt-d">${o.d}</span>` : ''}</span>
           <span class="opt-check">${icon('check')}</span>
@@ -26,10 +31,11 @@ export function sellPage(L, { here, preModel, preSeries, q }) {
       })}
     </div>
   </fieldset>`;
+  };
 
-  const clientCatalog = MODELS_NEWEST.map(({ id, name, series, year, bio, glassBack, trueTone, cameraButton, esimQ, cam, colors, storages, deductions, tiers, scrap }) =>
-    ({ id, name, series, year, bio, glassBack, trueTone, cameraButton, esimQ, cam, colors, storages, deductions, tiers, scrap }));
-  const boot = { models: clientCatalog, settings: config.pricing, steps: STEPS, preModel: preModel || null, maxPhotos: config.maxPhotos };
+  const clientCatalog = MODELS_NEWEST.map(({ id, name, category, series, year, bio, glassBack, trueTone, cameraButton, esimQ, spen, fold, art, colors, storages, ram, materials, connectivity, deductions, tiers, scrap, priced }) =>
+    ({ id, name, category, series, year, bio, glassBack, trueTone, cameraButton, esimQ, spen, fold, art, colors, storages, ram, materials, connectivity, deductions, tiers, scrap, priced }));
+  const boot = { models: clientCatalog, settings: config.pricing, preModel: preModel?.id || null, startCat, maxPhotos: config.maxPhotos };
 
   return layout(L, {
     here,
@@ -50,23 +56,26 @@ export function sellPage(L, { here, preModel, preSeries, q }) {
 
     <section class="step" data-step="model">
       <h1 tabindex="-1">${t.whichPhone}</h1>
+      <div class="cat-pick" role="group" aria-label="${t.catAria}">
+        ${CATEGORY_KEYS.map((c) => html`<button type="button" class="cat-btn${c === startCat ? ' is-on' : ''}" data-cat="${c}" aria-pressed="${c === startCat ? 'true' : 'false'}">${L.cats[c]}</button>`)}
+      </div>
       <label class="search-field search-field-lg">
         ${icon('search')}
         <input type="search" data-model-search value="${q || ''}" placeholder="${t.modelSearchPh}" aria-label="${t.modelSearchAria}" autocomplete="off">
       </label>
       <div class="chips chips-scroll series-filter" role="group" aria-label="${t.seriesFilterAria}">
         <button type="button" class="chip${preSeries ? '' : ' is-on'}" data-series="" aria-pressed="${preSeries ? 'false' : 'true'}">${t.all}</button>
-        ${SERIES.map((s) => html`<button type="button" class="chip${preSeries === s ? ' is-on' : ''}" data-series="${s}" aria-pressed="${preSeries === s ? 'true' : 'false'}">${seriesLabel(s)}</button>`)}
+        ${SERIES.map((s) => html`<button type="button" class="chip${preSeries === s ? ' is-on' : ''}" data-series="${s}" data-series-cat="${catOfSeries(s)}" aria-pressed="${preSeries === s ? 'true' : 'false'}" ${raw(catOfSeries(s) === startCat ? '' : 'hidden')}>${seriesLabel(s)}</button>`)}
       </div>
       <div class="model-list" role="radiogroup" aria-label="${t.modelsAria}">
-        ${SERIES.map((s) => html`<div class="model-group" data-group data-series="${s}" ${raw(preSeries && preSeries !== s ? 'hidden' : '')}>
+        ${SERIES.map((s) => html`<div class="model-group" data-group data-series="${s}" data-group-cat="${catOfSeries(s)}" ${raw(catOfSeries(s) !== startCat || (preSeries && preSeries !== s) ? 'hidden' : '')}>
           <h2 class="model-group-h">${seriesLabel(s)}</h2>
           ${MODELS_NEWEST.filter((m) => m.series === s).map((m) => {
             const span = priceSpan(m);
-            return html`<label class="model-opt" data-name="${fold(`${m.name} ${m.name.replace('iPhone ', '')}`)}">
+            return html`<label class="model-opt" data-name="${fold(`${m.name} ${m.name.replace(/^(iPhone|Galaxy|Apple Watch) /, '')}`)}">
               <input type="radio" name="model" value="${m.id}" required>
               <span class="model-opt-t">${m.name}<small>${m.year}</small></span>
-              <span class="model-opt-p">${L.range(toUzs(span.min, config.pricing), toUzs(span.max, config.pricing))}</span>
+              ${span ? html`<span class="model-opt-p">${L.range(toUzs(span.min, config.pricing), toUzs(span.max, config.pricing))}</span>` : ''}
               ${icon('right')}
             </label>`;
           })}
@@ -77,43 +86,53 @@ export function sellPage(L, { here, preModel, preSeries, q }) {
 
     <section class="step" data-step="config" hidden>
       <h2 class="step-title" tabindex="-1" data-model-title></h2>
-      <fieldset class="q"><legend>${t.storageQ}</legend><div class="opts opts-chips" data-storages></div></fieldset>
+      <fieldset class="q" data-if="ram"><legend>${t.ramQ}</legend><div class="opts opts-chips" data-ram></div></fieldset>
+      <fieldset class="q"><legend data-storage-legend>${t.storageQ}</legend><div class="opts opts-chips" data-storages></div></fieldset>
+      ${question('material', [], { cond: 'material' })}
+      ${question('connectivity', [], { cond: 'connectivity' })}
       <fieldset class="q"><legend>${t.colorQ}</legend><div class="swatches" data-colors></div></fieldset>
-      <div data-if="esimQ">${question('sim', BASIC.sim)}</div>
+      ${question('sim', BASIC.sim, { cond: 'esimQ' })}
     </section>
 
     <section class="step" data-step="basic" hidden>
       <h2 class="step-title" tabindex="-1">${t.basicTitle}</h2>
       ${question('powersOn', BASIC.powersOn, { cols: 2 })}
-      <div data-if="powersOn">${question('imeiOk', BASIC.imeiOk, { cols: 2 })}</div>
+      ${question('imeiOk', BASIC.imeiOk, { cols: 2, cond: 'imeiOk' })}
       ${question('icloudOff', BASIC.icloudOff, { cols: 2 })}
       <div class="notice notice-bad" data-icloud-block hidden>${icon('alert')}<div><b>${t.icloudBlockTitle}</b> ${t.icloudBlockText}</div></div>
-      <div data-if="powersOn">${question('refurbished', BASIC.refurbished, { cols: 2 })}</div>
+      ${question('refurbished', BASIC.refurbished, { cols: 2, cond: 'powersOn' })}
     </section>
 
     <section class="step" data-step="looks" hidden>
       <h2 class="step-title" tabindex="-1">${t.looksTitle2}</h2>
       ${question('screen', LOOKS.screen)}
+      ${question('inner', LOOKS.inner, { cond: 'inner' })}
       ${question('body', LOOKS.body)}
-      <div data-if="glassBack">${question('backGlass', LOOKS.backGlass, { cols: 2 })}</div>
-      ${question('lens', LOOKS.lens)}
-      ${question('bent', LOOKS.bent)}
+      ${question('backGlass', LOOKS.backGlass, { cols: 2, cond: 'backGlass' })}
+      ${question('lens', LOOKS.lens, { cond: 'lens' })}
+      ${question('bent', LOOKS.bent, { cond: 'bent' })}
     </section>
 
     <section class="step" data-step="screen" hidden>
       <h2 class="step-title" tabindex="-1">${t.screenTitle}</h2>
       ${question('glass', SCREEN.glass, { cols: 2 })}
       <div data-if="powersOn">
-      ${question('display', SCREEN.display)}
-      <fieldset class="q">
-        <legend>${t.batteryQ}</legend>
-        <p class="q-hint">${icon('info')}${t.batteryHint}</p>
-        <div class="battery">
-          <input type="range" min="50" max="100" step="1" value="100" data-battery-range aria-label="${t.batteryAria}">
-          <label class="battery-num"><input type="number" name="battery" min="1" max="100" inputmode="numeric" value="" placeholder="—" required data-battery-num><span>%</span></label>
-        </div>
-        <p class="battery-hint muted small" data-battery-hint></p>
-      </fieldset>
+        ${question('display', SCREEN.display)}
+        <fieldset class="q" data-if="battery-percent">
+          <legend>${t.batteryQ}</legend>
+          <p class="q-hint">${icon('info')}<span data-battery-hint-text>${t.batteryHint}</span></p>
+          <div class="battery">
+            <input type="range" min="50" max="100" step="1" value="100" data-battery-range aria-label="${t.batteryAria}">
+            <label class="battery-num"><input type="number" name="battery" min="1" max="100" inputmode="numeric" value="" placeholder="—" data-battery-num><span>%</span></label>
+          </div>
+          <p class="battery-hint muted small" data-battery-hint></p>
+        </fieldset>
+        ${question('batteryLevel', MORE.batteryLevel, { cond: 'battery-level' })}
+        ${question('macBattery', MORE.macBattery, { cols: 2, cond: 'battery-mac' })}
+        <label class="field" data-if="battery-mac"><span>${t.cyclesQ} <span class="muted">${t.optional}</span></span>
+          <input type="number" name="cycles" min="0" max="5000" inputmode="numeric" placeholder="—">
+          <span class="muted small">${t.cyclesHint}</span>
+        </label>
       </div>
     </section>
 
@@ -121,13 +140,14 @@ export function sellPage(L, { here, preModel, preSeries, q }) {
       <h2 class="step-title" tabindex="-1">${t.faultsTitle}</h2>
       <p class="muted">${t.faultsSub}</p>
       <div class="checks">
-        ${FAULTS.map((f) => html`<label class="check" data-fault="${f.k}">
-          <input type="checkbox" name="faults" value="${f.k}">
-          <span class="check-t" data-fault-label>${pick(L.faults[f.k].q, { bio: 'face' })}</span>
+        ${FAULT_KEYS.map((k) => html`<label class="check" data-fault="${k}" hidden>
+          <input type="checkbox" name="faults" value="${k}">
+          <span class="check-t" data-fault-label>${faultText(L, k, { category: startCat, bio: 'face' }).q}</span>
           <span class="switch" aria-hidden="true"></span>
         </label>`)}
       </div>
       <p class="all-ok" data-all-ok>${icon('check')}${t.allWork}</p>
+      ${question('repair', MORE.repair, { cond: 'repair' })}
     </section>
 
     <section class="step" data-step="parts" hidden>
@@ -176,10 +196,10 @@ export function sellPage(L, { here, preModel, preSeries, q }) {
         <span class="input-prefix"><span>@</span><input type="text" name="telegram" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="username" pattern="[A-Za-z0-9_]{5,32}"></span>
       </label>
 
-      ${question('uzimei', UZIMEI)}
+      ${question('uzimei', UZIMEI, { cond: 'uzimei' })}
 
       <fieldset class="q"><legend>${t.inBox}</legend>
-        <div class="toggles">${EXTRAS.map((k) => html`<label class="toggle"><input type="checkbox" name="extra_${k}"><span>${icon('check')}${L.extras[k]}</span></label>`)}</div>
+        <div class="toggles">${EXTRAS.map((k) => html`<label class="toggle" data-extra="${k}"><input type="checkbox" name="extra_${k}"><span>${icon('check')}${L.extras[k]}</span></label>`)}</div>
       </fieldset>
 
       <label class="field"><span>${t.desc} <span class="muted">${t.optional}</span></span>
@@ -197,7 +217,7 @@ export function sellPage(L, { here, preModel, preSeries, q }) {
       <div class="summary-art" data-summary-art></div>
       <p class="summary-model" data-summary-model>${t.pickModel}</p>
       <p class="summary-sub muted" data-summary-sub></p>
-      <p class="summary-label">${t.estPrice}</p>
+      <p class="summary-label" data-summary-label>${t.estPrice}</p>
       <p class="summary-price" data-summary-price>—</p>
       <ul class="summary-lines" data-summary-lines></ul>
     </div>

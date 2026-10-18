@@ -9,12 +9,36 @@ const S = { unitKRW: 10000, krwToUzs: 8.5, multiplier: 1, roundTo: 1000 };
 const units = (id, storage, answers) => estimate(byId(id), storage, answers, S).units;
 
 test('every model from the price list has metadata and prices', () => {
-  assert.equal(MODELS.length, 42);
-  for (const m of MODELS) {
-    assert.ok(m.storages.length > 0, m.id);
-    assert.ok(m.colors.length > 0, `${m.id} colours`);
+  const iphones = MODELS.filter((m) => m.category === 'iphone');
+  assert.equal(iphones.length, 42);
+  for (const m of iphones) {
+    assert.ok(m.priced, m.id);
     for (const r of m.storages) assert.equal(typeof r.base, 'number', `${m.id} ${r.label} base price`);
   }
+});
+
+test('every model in every category has specs, colours and a unique id', () => {
+  assert.equal(new Set(MODELS.map((m) => m.id)).size, MODELS.length);
+  for (const m of MODELS) {
+    assert.ok(m.storages.length > 0, `${m.id} storages`);
+    assert.ok(m.colors.length > 0 && m.colors.every((c) => c.hex), `${m.id} colours`);
+    assert.ok(m.art, `${m.id} drawing`);
+    if (m.category === 'macbook') assert.ok(m.ram?.length, `${m.id} RAM options`);
+    if (m.category === 'watch') assert.ok(m.materials?.length && m.connectivity?.length, `${m.id} case and connectivity`);
+    if (m.category === 'ipad') assert.deepEqual(m.connectivity, ['wifi', 'cellular']);
+  }
+});
+
+test('devices without a price list get a condition grade but no price', () => {
+  const s24u = byId('galaxy-s24-ultra');
+  const r = estimate(s24u, '256 GB', { screen: 'A', body: 'A', inner: undefined }, S);
+  assert.equal(r.status, 'unpriced');
+  assert.equal(r.grade, 'A');
+  assert.equal(r.uzs, undefined);
+  assert.equal(estimate(byId('galaxy-z-flip6'), '256 GB', { screen: 'A', body: 'A', inner: 'minor' }, S).grade, 'B+');
+  assert.equal(estimate(byId('galaxy-z-flip6'), '256 GB', { screen: 'A', body: 'A', inner: 'damaged' }, S).grade, 'C');
+  assert.equal(estimate(byId('apple-watch-series-10'), '46 mm', { icloudOff: 'no' }, S).status, 'blocked');
+  assert.equal(estimate(byId('macbook-air-13-m4'), '256 GB', { powersOn: 'no' }, S).grade, 'C');
 });
 
 test('grade price for a perfect phone', () => {

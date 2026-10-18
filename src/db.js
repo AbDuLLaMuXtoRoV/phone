@@ -35,6 +35,11 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS listings_status_created ON listings(status, created_at DESC);
   CREATE INDEX IF NOT EXISTS listings_model ON listings(model_id);
 `);
+// Added when categories beyond iPhone arrived; listings from before are iPhones.
+if (!db.prepare('PRAGMA table_info(listings)').all().some((c) => c.name === 'category')) {
+  db.exec("ALTER TABLE listings ADD COLUMN category TEXT NOT NULL DEFAULT 'iphone'");
+}
+db.exec('CREATE INDEX IF NOT EXISTS listings_category ON listings(category, status)');
 
 const hydrate = (r) => r && ({
   ...r,
@@ -45,11 +50,11 @@ const hydrate = (r) => r && ({
 
 export function insertListing(l) {
   const res = db.prepare(`
-    INSERT INTO listings (model_id, model_name, series, storage, color, grade, battery, answers, est_uzs, price_uzs,
+    INSERT INTO listings (category, model_id, model_name, series, storage, color, grade, battery, answers, est_uzs, price_uzs,
       region, seller_name, phone, telegram, description, photos, extras, uzimei, token_hash, views, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
-    l.model_id, l.model_name, l.series, l.storage, l.color ?? null, l.grade, l.battery, JSON.stringify(l.answers),
+    l.category, l.model_id, l.model_name, l.series, l.storage, l.color ?? null, l.grade, l.battery, JSON.stringify(l.answers),
     l.est_uzs, l.price_uzs, l.region, l.seller_name, l.phone, l.telegram ?? null, l.description ?? null,
     JSON.stringify(l.photos || []), JSON.stringify(l.extras || {}), l.uzimei ?? null, l.token_hash, l.views || 0,
     l.created_at || Date.now(),
@@ -61,6 +66,9 @@ export const setPhotos = (id, photos) => db.prepare('UPDATE listings SET photos 
 export const getListing = (id) => hydrate(db.prepare('SELECT * FROM listings WHERE id = ?').get(id));
 export const addView = (id) => db.prepare('UPDATE listings SET views = views + 1 WHERE id = ?').run(id);
 export const countListings = () => db.prepare("SELECT COUNT(*) AS n FROM listings WHERE status = 'active'").get().n;
+export const countByCategory = () => Object.fromEntries(
+  db.prepare("SELECT category, COUNT(*) AS n FROM listings WHERE status = 'active' GROUP BY category").all().map((r) => [r.category, r.n]));
+export const hasToken = (tokenHash) => !!db.prepare('SELECT 1 FROM listings WHERE token_hash = ?').get(tokenHash);
 
 export function setStatus(id, tokenHash, status) {
   return db.prepare('UPDATE listings SET status = ? WHERE id = ? AND token_hash = ?').run(status, id, tokenHash).changes > 0;
@@ -97,6 +105,7 @@ export function search(f, { limit = 24 } = {}) {
       args.push(`% ${w}%`);
     }
   }
+  if (f.cat) { where.push('category = ?'); args.push(f.cat); }
   if (f.series) { where.push('series = ?'); args.push(f.series); }
   if (f.model) { where.push('model_id = ?'); args.push(f.model); }
   if (f.storage) { where.push('storage = ?'); args.push(f.storage); }

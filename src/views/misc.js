@@ -2,13 +2,14 @@ import { html, fold } from '../util.js';
 import { icon } from './icons.js';
 import { layout } from './layout.js';
 import { cards, empty, phoneArt } from './components.js';
-import { MODELS_NEWEST, SERIES, seriesLabel, PRICE_SOURCE } from '../catalog.js';
+import { MODELS_NEWEST, seriesOf, seriesLabel, PRICE_SOURCE } from '../catalog.js';
 import { toUzs } from '../../public/assets/pricing.js';
 import config from '../config.js';
 
 export function pricesPage(L, { here }) {
   const t = L.t;
   const p = config.pricing;
+  const series = seriesOf('iphone'); // the price list covers iPhones only
   return layout(L, {
     here,
     title: t.pricesTitle,
@@ -23,9 +24,9 @@ export function pricesPage(L, { here }) {
   <label class="search-field search-field-lg">
     ${icon('search')}<input type="search" placeholder="${t.pricesSearch}" aria-label="${t.pricesSearch}" data-filter-input="prices">
   </label>
-  <div class="chips chips-scroll">${SERIES.map((s) => html`<a class="chip" href="#s-${s}">${seriesLabel(s)}</a>`)}</div>
+  <div class="chips chips-scroll">${series.map((s) => html`<a class="chip" href="#s-${s}">${seriesLabel(s)}</a>`)}</div>
   <div class="price-list" data-filter-list="prices">
-    ${SERIES.map((s) => html`<h2 class="price-series" id="s-${s}" data-filter-group>${seriesLabel(s)}</h2>
+    ${series.map((s) => html`<h2 class="price-series" id="s-${s}" data-filter-group>${seriesLabel(s)}</h2>
       ${MODELS_NEWEST.filter((m) => m.series === s).map((m) => html`<article class="price-card" data-filter-item="${fold(m.name)}">
         <div class="price-card-art">${phoneArt(m, m.colors[0]?.k)}</div>
         <div class="price-card-body">

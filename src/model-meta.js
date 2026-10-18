@@ -4,6 +4,13 @@
 
 // Hex values for the drawn phone images. Colour names are in public/assets/i18n/*.js.
 export const COLORS = {
+  // Galaxy colours (iPad, MacBook and Apple Watch reuse the Apple ones below)
+  titaniumsilver: '#A9B3BD',
+  titaniumgray: '#8A8A86',
+  navy: '#2B3448',
+  mint: '#BFE3D2',
+  violet: '#8B7DB8',
+  cream: '#EFE6D2',
   black: '#232326',
   white: '#F2F2F0',
   red: '#B3202B',

@@ -7,12 +7,13 @@ import { networkInterfaces } from 'node:os';
 
 import config from './src/config.js';
 import { ROOT } from './src/paths.js';
-import { byId, MODELS, SERIES } from './src/catalog.js';
+import { byId, MODELS, SERIES, catOfSeries } from './src/catalog.js';
 import * as db from './src/db.js';
-import { seedIfEmpty } from './src/seed.js';
+import { seed } from './src/seed.js';
 import { LANGS, pickLang, langCookie } from './src/i18n.js';
 import { estimate, conditionGrade } from './public/assets/pricing.js';
-import { BASIC, LOOKS, SCREEN, FAULTS, PARTS, EXTRAS, UZIMEI, REGIONS } from './public/assets/questions.js';
+import { BASIC, LOOKS, SCREEN, MORE, PARTS, UZIMEI, REGIONS } from './public/assets/questions.js';
+import { CATEGORY_KEYS, CATEGORIES, applies, faultsFor, extrasFor, batteryMode, hasParts } from './public/assets/categories.js';
 import { homePage } from './src/views/home.js';
 import { catalogPage } from './src/views/catalog.js';
 import { listingPage } from './src/views/listing.js';
@@ -22,7 +23,7 @@ import { pricesPage, favoritesPage, minePage, notFoundPage } from './src/views/m
 const PUBLIC = join(ROOT, 'public');
 const UPLOADS = join(ROOT, 'uploads');
 await mkdir(UPLOADS, { recursive: true });
-seedIfEmpty();
+seed();
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
@@ -88,32 +89,47 @@ async function readJson(req, limit = 25 * 1024 * 1024) {
 const oneOf = (values, v) => (values.includes(v) ? v : undefined);
 const clean = (s, max) => String(s ?? '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').trim().slice(0, max);
 
-// Keep only known answers with allowed values. Throws if a required answer is missing.
+// Keep only known answers with allowed values for this device's category. Throws if a required answer is missing.
 function sanitizeAnswers(input, model) {
   const a = input && typeof input === 'object' ? input : {};
+  const c = CATEGORIES[model.category];
+  const int = (v, min, max) => (Number.isInteger(+v) && +v >= min && +v <= max ? +v : undefined);
   const out = {
     powersOn: oneOf(BASIC.powersOn, a.powersOn),
     icloudOff: oneOf(BASIC.icloudOff, a.icloudOff),
     screen: oneOf(LOOKS.screen, a.screen),
     body: oneOf(LOOKS.body, a.body),
-    lens: oneOf(LOOKS.lens, a.lens),
-    bent: oneOf(LOOKS.bent, a.bent),
     glass: oneOf(SCREEN.glass, a.glass),
-    backGlass: model.glassBack ? oneOf(LOOKS.backGlass, a.backGlass) : 'ok',
+    lens: c.looks.includes('lens') ? oneOf(LOOKS.lens, a.lens) : 'ok',
+    bent: c.looks.includes('bent') ? oneOf(LOOKS.bent, a.bent) : 'none',
+    backGlass: applies('backGlass', model) ? oneOf(LOOKS.backGlass, a.backGlass) : 'ok',
     sim: model.esimQ ? oneOf(BASIC.sim, a.sim) : 'sim',
   };
+  if (applies('inner', model)) out.inner = oneOf(LOOKS.inner, a.inner);
+  if (c.config.includes('connectivity')) out.connectivity = oneOf(model.connectivity || [], a.connectivity);
+  if (c.config.includes('material')) out.material = oneOf(model.materials || [], a.material);
+  if (c.config.includes('ram')) out.ram = (model.ram || []).includes(+a.ram) ? +a.ram : undefined;
+
   if (out.powersOn === 'yes') {
+    const mode = batteryMode(model);
     Object.assign(out, {
-      imeiOk: oneOf(BASIC.imeiOk, a.imeiOk),
+      imeiOk: applies('imeiOk', model, out) ? oneOf(BASIC.imeiOk, a.imeiOk) : 'yes',
       refurbished: oneOf(BASIC.refurbished, a.refurbished),
       display: oneOf(SCREEN.display, a.display),
-      battery: Number.isInteger(+a.battery) && +a.battery >= 1 && +a.battery <= 100 ? +a.battery : undefined,
-      faults: [...new Set((Array.isArray(a.faults) ? a.faults : []).filter((f) => FAULTS.some((x) => x.k === f && (!x.when || x.when(model)))))],
-      parts: Object.fromEntries(PARTS.items.map((p) => [p, oneOf(PARTS.options, a.parts?.[p]) || 'none'])),
+      battery: mode === 'percent' ? int(a.battery, 1, 100) : 0,
+      faults: [...new Set((Array.isArray(a.faults) ? a.faults : []).filter((f) => faultsFor(model, out).includes(f)))],
     });
+    if (mode === 'level') out.batteryLevel = oneOf(MORE.batteryLevel, a.batteryLevel);
+    if (mode === 'mac') {
+      out.macBattery = oneOf(MORE.macBattery, a.macBattery);
+      if (a.cycles !== undefined && a.cycles !== null && a.cycles !== '') out.cycles = int(a.cycles, 0, 5000);
+    }
+    if (hasParts(model)) out.parts = Object.fromEntries(PARTS.items.map((p) => [p, oneOf(PARTS.options, a.parts?.[p]) || 'none']));
+    else out.repair = oneOf(MORE.repair, a.repair);
   } else {
-    // A phone that does not turn on cannot be tested; record that instead of guessing.
-    Object.assign(out, { imeiOk: 'no', refurbished: 'no', display: 'unknown', battery: 0, faults: [], parts: { screen: 'none', battery: 'none', camera: 'none' }, untested: true });
+    // A device that does not turn on cannot be tested; record that instead of guessing.
+    Object.assign(out, { imeiOk: 'no', refurbished: 'no', display: 'unknown', battery: 0, faults: [], untested: true });
+    if (hasParts(model)) out.parts = { screen: 'none', battery: 'none', camera: 'none' };
   }
   if (Object.values(out).some((v) => v === undefined)) throw new HttpError(400, 'incomplete');
   return out;
@@ -177,14 +193,14 @@ async function createListing(req, res) {
 
   const token = randomBytes(18).toString('base64url');
   const id = db.insertListing({
-    model_id: model.id, model_name: model.name, series: model.series, storage,
+    category: model.category, model_id: model.id, model_name: model.name, series: model.series, storage,
     color: model.colors.some((c) => c.k === b.color) ? b.color : null,
-    grade: est.status === 'scrap' ? 'C' : conditionGrade(answers),
-    battery: answers.battery, answers, est_uzs: est.uzs, price_uzs: price, region,
+    grade: est.status === 'scrap' ? 'C' : est.grade || conditionGrade(answers),
+    battery: answers.battery || 0, answers, est_uzs: est.uzs || 0, price_uzs: price, region,
     seller_name: name, phone: `+${phone}`, telegram: telegram || null,
     description: clean(b.description, 1000) || null,
-    extras: Object.fromEntries(EXTRAS.map((k) => [k, b.extras?.[k] ? 1 : 0])),
-    uzimei: oneOf(UZIMEI, b.uzimei) || 'unknown',
+    extras: Object.fromEntries(extrasFor(model).map((k) => [k, b.extras?.[k] ? 1 : 0])),
+    uzimei: applies('uzimei', model, answers) ? oneOf(UZIMEI, b.uzimei) || 'unknown' : null,
     token_hash: createHash('sha256').update(token).digest('hex'),
   });
   if (photos.length) {
@@ -223,15 +239,18 @@ async function route(req, res, url, L) {
     if (old) return redirect(res, p.replace(old[0], old[1]) + url.search, 301);
   }
   if (isGet && p === '/') {
-    return sendHtml(req, res, homePage(L, { here, latest: db.search({ sort: 'new' }, { limit: 8 }).items, total: db.countListings() }));
+    return sendHtml(req, res, homePage(L, { here, latest: db.search({ sort: 'new' }, { limit: 8 }).items, total: db.countListings(), counts: db.countByCategory() }));
   }
   if (isGet && p === '/phones') {
     const f = {
-      q: clean(q.q, 60), series: SERIES.includes(q.series) ? q.series : '', model: byId(q.model) ? q.model : '', storage: clean(q.storage, 10),
+      q: clean(q.q, 60), cat: CATEGORY_KEYS.includes(q.cat) ? q.cat : '',
+      series: SERIES.includes(q.series) ? q.series : '', model: byId(q.model) ? q.model : '', storage: clean(q.storage, 10),
       grade: ['a', 'b', 'c'].includes(q.grade) ? q.grade : '', region: REGIONS.includes(q.region) ? q.region : '',
       min: intParam(q.min), max: intParam(q.max), bat: intParam(q.bat), sort: clean(q.sort, 10), page: intParam(q.page) || 1,
     };
-    if (f.model) f.series = '';
+    // The narrowest filter wins: a model implies its category, a series implies its category.
+    if (f.model) { f.series = ''; f.cat = byId(f.model).category; }
+    if (f.series) f.cat = catOfSeries(f.series);
     if (f.min && f.max && f.min > f.max) [f.min, f.max] = [f.max, f.min];
     const result = db.search(f);
     f.min ||= ''; f.max ||= ''; f.bat ||= ''; f.page = f.page > 1 ? f.page : '';
@@ -248,8 +267,9 @@ async function route(req, res, url, L) {
   if (isGet && p === '/sell') {
     return sendHtml(req, res, sellPage(L, {
       here,
-      preModel: byId(q.model) ? q.model : null,
+      preModel: byId(q.model) || null,
       preSeries: SERIES.includes(q.series) ? q.series : null,
+      preCat: CATEGORY_KEYS.includes(q.cat) ? q.cat : null,
       q: clean(q.q, 40),
     }));
   }
@@ -278,7 +298,7 @@ async function route(req, res, url, L) {
     return sendJson(req, res, { ok: true });
   }
   if (isGet && p === '/api/models') {
-    return sendJson(req, res, MODELS.map(({ id, name, year, storages }) => ({ id, name, year, storages: storages.map((s) => s.label) })));
+    return sendJson(req, res, MODELS.map(({ id, name, category, year, storages, priced }) => ({ id, name, category, year, priced, storages: storages.map((s) => s.label) })));
   }
 
   // Static

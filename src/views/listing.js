@@ -1,9 +1,10 @@
 import { html, raw, formatPhone } from '../util.js';
 import { icon } from './icons.js';
 import { layout } from './layout.js';
-import { cards, gradeChip, phoneArt, estFor, regionName, colorName } from './components.js';
+import { cards, gradeChip, phoneArt, estFor, regionName, colorName, specLine, batteryText } from './components.js';
 import { byId, colorOf } from '../catalog.js';
-import { FAULTS, PARTS, EXTRAS, pick, opt } from '../../public/assets/questions.js';
+import { PARTS, opt, qText, faultText } from '../../public/assets/questions.js';
+import { applies, looksFor, faultsFor, extrasFor, hasParts } from '../../public/assets/categories.js';
 import { estimate, normalize, priceVerdict } from '../../public/assets/pricing.js';
 import config from '../config.js';
 
@@ -12,34 +13,44 @@ const STATE_ICON = { ok: 'check', warn: 'alert', bad: 'close' };
 
 function report(L, model, answers) {
   const t = L.t;
+  const cat = model.category;
   const a = normalize(answers);
-  const o = (q, v) => opt(L, q, v).t;
+  const o = (q, v) => opt(L, q, v, cat).t;
+  // Row label: the category's own wording when it has one (e.g. "Case and lid" on a MacBook).
+  const label = (q, fallback) => (L.q[`${q}_${cat}`]?.title || fallback);
+  const LOOK_ROWS = {
+    screen: () => row(label('screen', t.rowScreen), o('screen', a.screen), a.screen === 'C' ? 'bad' : a.screen === 'B' ? 'warn' : 'ok'),
+    body: () => row(label('body', t.rowBody), o('body', a.body), a.body === 'C' ? 'bad' : a.body.startsWith('B') ? 'warn' : 'ok'),
+    backGlass: () => row(label('backGlass', t.rowBack), o('backGlass', a.backGlass), a.backGlass === 'ok' ? 'ok' : 'bad'),
+    lens: () => row(t.rowLens, o('lens', a.lens), a.lens === 'ok' ? 'ok' : a.lens === 'scratched' ? 'warn' : 'bad'),
+    bent: () => row(t.rowBent, o('bent', a.bent), a.bent === 'none' ? 'ok' : a.bent === 'light' ? 'warn' : 'bad'),
+    inner: () => row(t.rowInner, o('inner', a.inner || 'ok'), !a.inner || a.inner === 'ok' ? 'ok' : a.inner === 'minor' ? 'warn' : 'bad'),
+  };
   const looks = [
-    row(t.rowScreen, o('screen', a.screen), a.screen === 'C' ? 'bad' : a.screen === 'B' ? 'warn' : 'ok'),
-    row(t.rowBody, o('body', a.body), a.body === 'C' ? 'bad' : a.body.startsWith('B') ? 'warn' : 'ok'),
-    model.glassBack && row(t.rowBack, o('backGlass', a.backGlass), a.backGlass === 'ok' ? 'ok' : 'bad'),
-    row(t.rowLens, o('lens', a.lens), a.lens === 'ok' ? 'ok' : a.lens === 'scratched' ? 'warn' : 'bad'),
-    row(t.rowBent, o('bent', a.bent), a.bent === 'none' ? 'ok' : a.bent === 'light' ? 'warn' : 'bad'),
+    ...looksFor(model, a).map((k) => LOOK_ROWS[k]()),
     row(t.rowGlass, o('glass', a.glass), a.glass === 'ok' ? 'ok' : 'bad'),
     row(t.rowDisplay, o('display', a.display), a.display === 'ok' ? 'ok' : a.display === 'minor' ? 'warn' : 'bad'),
-  ].filter(Boolean);
+  ];
+  const lock = row(t.rowIcloud, t.signedOut, 'ok');
   if (a.untested) {
-    // Phone does not turn on: nothing beyond the looks could be checked.
+    // Device does not turn on: nothing beyond the looks could be checked.
     looks[looks.length - 1] = row(t.rowDisplay, t.cantCheck, 'warn');
     const na = [row(t.deadPhone, t.cantCheck, 'bad')];
-    return { looks, funcs: na, parts: na, basics: [row(t.rowIcloud, t.signedOut, 'ok'), row(t.rowPowers, t.no, 'bad')] };
+    return { looks, funcs: na, parts: hasParts(model) ? na : [], basics: [lock, row(t.rowPowers, t.no, 'bad')] };
   }
-  const funcs = FAULTS.filter((f) => !f.when || f.when(model)).map((f) => {
-    const broken = a.faults.includes(f.k);
-    return row(pick(L.faults[f.k].s, model), broken ? t.broken : t.works, broken ? 'bad' : 'ok');
+  const funcs = faultsFor(model, a).map((k) => {
+    const broken = a.faults.includes(k);
+    return row(faultText(L, k, model).s, broken ? t.broken : t.works, broken ? 'bad' : 'ok');
   });
-  const parts = PARTS.items.map((p) => row(L.parts.items[p], L.parts.opts[a.parts[p]] ?? '—', a.parts[p] === 'none' ? 'ok' : a.parts[p] === 'genuine' ? 'warn' : 'bad'));
+  const parts = hasParts(model)
+    ? PARTS.items.map((p) => row(L.parts.items[p], L.parts.opts[a.parts[p]] ?? '—', a.parts[p] === 'none' ? 'ok' : a.parts[p] === 'genuine' ? 'warn' : 'bad'))
+    : a.repair ? [row(t.rowRepair, o('repair', a.repair), a.repair === 'none' ? 'ok' : a.repair === 'official' ? 'warn' : 'bad')] : [];
   const basics = [
-    row(t.rowIcloud, t.signedOut, 'ok'),
-    row(t.rowImei, a.imeiOk === 'yes' ? t.shown : t.notShown, a.imeiOk === 'yes' ? 'ok' : 'bad'),
+    lock,
+    applies('imeiOk', model, a) && row(t.rowImei, a.imeiOk === 'yes' ? t.shown : t.notShown, a.imeiOk === 'yes' ? 'ok' : 'bad'),
     row(t.rowPowers, a.powersOn === 'yes' ? t.yes : t.no, a.powersOn === 'yes' ? 'ok' : 'bad'),
-    row(t.rowRefurb, a.refurbished === 'yes' ? L.q.refurbished.opts.yes : L.q.refurbished.opts.no, a.refurbished === 'yes' ? 'warn' : 'ok'),
-  ];
+    row(t.rowRefurb, o('refurbished', a.refurbished), a.refurbished === 'yes' ? 'warn' : 'ok'),
+  ].filter(Boolean);
   return { looks, funcs, parts, basics };
 }
 
@@ -48,19 +59,23 @@ const rows = (list) => html`<ul class="report">${list.map((r) => html`<li class=
 export function listingPage(L, { here, l, similar, isNew }) {
   const t = L.t;
   const model = byId(l.model_id);
+  const cat = model.category;
   const a = normalize(l.answers);
   const color = colorOf(model, l.color);
   const est = estimate(model, l.storage, l.answers, config.pricing);
+  const priced = est.status === 'ok' || est.status === 'scrap';
   const sysEst = estFor(l);
   const verdict = priceVerdict(l.price_uzs, sysEst);
   const rep = report(L, model, l.answers);
   const faultsCount = a.untested ? 0 : rep.funcs.filter((r) => r.state === 'bad').length;
-  const extras = EXTRAS.filter((k) => l.extras?.[k]);
+  const extras = extrasFor(model).filter((k) => l.extras?.[k]);
   const tg = l.telegram ? l.telegram.replace(/^@/, '') : null;
   const sold = l.status === 'sold';
-  const title = `${l.model_name}, ${l.storage}`;
+  const title = `${l.model_name}, ${specLine(l)}`;
   const photos = l.photos.length ? l.photos : null;
   const region = regionName(L, l.region);
+  const fact = (label, value, cls = '') => html`<div class="fact"><span>${label}</span><b class="${cls}">${value}</b></div>`;
+  const storageLabel = cat === 'watch' ? t.factSize : t.factStorage;
 
   return layout(L, {
     here,
@@ -95,7 +110,7 @@ export function listingPage(L, { here, l, similar, isNew }) {
       <div class="price-box">
         <p class="price-big">${L.price(l.price_uzs)}</p>
         ${verdict && !sold ? html`<p class="verdict-line"><span class="verdict verdict-${verdict.k}">${L.verdict[verdict.k]}</span> ${t.systemEst} <b>${L.price(sysEst)}</b></p>` : ''}
-        ${est.status !== 'blocked' ? html`<details class="breakdown">
+        ${priced ? html`<details class="breakdown">
           <summary>${t.howCalc} ${icon('down')}</summary>
           <ul>${est.lines.map((x) => html`<li><span>${L.line(x, model)}</span><b class="${x.units < 0 ? 'neg' : ''}">${x.units < 0 ? '−' : ''}${L.price(Math.abs(x.uzs))}</b></li>`)}
             <li class="total"><span>${t.estTotal}</span><b>${L.price(est.uzs)}</b></li></ul>
@@ -103,12 +118,15 @@ export function listingPage(L, { here, l, similar, isNew }) {
       </div>
 
       <div class="facts">
-        <div class="fact"><span>${t.factCondition}</span><b>${gradeChip(L, l.grade, { long: true })}</b></div>
-        <div class="fact"><span>${t.factBattery}</span><b class="${l.battery && l.battery < 80 ? 'warn-text' : ''}">${icon('battery')}${l.battery ? `${l.battery}%` : t.unknown}</b></div>
-        <div class="fact"><span>${t.factStorage}</span><b>${l.storage}</b></div>
-        <div class="fact"><span>${t.factColor}</span><b>${color ? html`<i class="swatch" style="--c:${color.hex}"></i>${colorName(L, color.k)}` : '—'}</b></div>
-        ${model.esimQ ? html`<div class="fact"><span>${t.factSim}</span><b>${L.q.sim.opts[a.sim] || '—'}</b></div>` : ''}
-        <div class="fact"><span>${t.factImei}</span><b class="${l.uzimei === 'yes' ? 'ok-text' : 'warn-text'}">${l.uzimei === 'yes' ? t.regYes : l.uzimei === 'no' ? t.regNo : t.unknown}</b></div>
+        ${fact(t.factCondition, gradeChip(L, l.grade, { long: true }))}
+        ${fact(t.factBattery, html`${icon('battery')}${batteryText(L, l, { long: true })}`, l.battery && l.battery < 80 ? 'warn-text' : '')}
+        ${cat === 'macbook' && a.ram ? fact(t.factRam, `${a.ram} GB`) : ''}
+        ${fact(storageLabel, l.storage)}
+        ${a.material && cat === 'watch' ? fact(t.factMaterial, opt(L, 'material', a.material, cat).t) : ''}
+        ${a.connectivity ? fact(t.factConnectivity, opt(L, 'connectivity', a.connectivity, cat).t) : ''}
+        ${fact(t.factColor, color ? html`<i class="swatch" style="--c:${color.hex}"></i>${colorName(L, color.k)}` : '—')}
+        ${model.esimQ ? fact(t.factSim, qText(L, 'sim', cat).opts[a.sim] || '—') : ''}
+        ${applies('uzimei', model, a) ? fact(t.factImei, l.uzimei === 'yes' ? t.regYes : l.uzimei === 'no' ? t.regNo : t.unknown, l.uzimei === 'yes' ? 'ok-text' : 'warn-text') : ''}
       </div>
 
       <section class="block">
@@ -122,7 +140,7 @@ export function listingPage(L, { here, l, similar, isNew }) {
           <summary><h3 class="report-h">${t.funcsTitle}</h3><span class="${faultsCount ? 'bad-text' : 'ok-text'}">${faultsCount ? t.faultsN(faultsCount) : t.allWork}</span>${icon('down')}</summary>
           ${rows(rep.funcs)}
         </details>`}
-        <h3 class="report-h">${t.partsTitle}</h3>${rows(rep.parts)}
+        ${rep.parts.length ? html`<h3 class="report-h">${hasParts(model) ? t.partsTitle : t.repairTitle}</h3>${rows(rep.parts)}` : ''}
       </section>
 
       ${l.description ? html`<section class="block"><h2>${t.descTitle}</h2><p class="desc">${l.description}</p></section>` : ''}

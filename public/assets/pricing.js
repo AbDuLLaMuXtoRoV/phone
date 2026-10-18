@@ -49,8 +49,8 @@ export function conditionGrade(answers) {
   let g = worst(a.screen, a.body);
   if (a.lens === 'scratched') g = worst(g, 'B+');
   if (a.lens === 'cracked') g = worst(g, 'B');
-  if (a.display === 'minor') g = worst(g, 'B+'); // A/A- require no image retention
-  if (a.glass === 'cracked' || a.display === 'major' || a.backGlass === 'cracked' || a.bent === 'severe') g = 'C';
+  if (a.display === 'minor' || a.inner === 'minor') g = worst(g, 'B+'); // A/A- require no image retention
+  if (a.glass === 'cracked' || a.display === 'major' || a.backGlass === 'cracked' || a.bent === 'severe' || a.inner === 'damaged') g = 'C';
   return g;
 }
 
@@ -62,6 +62,7 @@ export function toUzs(units, s) {
 
 // Highest and lowest list price for a model (or one storage), used for "from … to …" hints.
 export function priceSpan(model, storageLabel) {
+  if (!model.priced) return null;
   const rows = storageLabel ? model.storages.filter((r) => r.label === storageLabel) : model.storages;
   const vals = rows.flatMap((r) => [r.A, r['A-'], r['B+'], r.B, r.battA, r.battBp, r.base]).filter(isNum);
   return { min: Math.min(...vals), max: Math.max(...vals) };
@@ -87,14 +88,16 @@ function basePrice(row, grade, battery, batteryAsItem) {
 }
 
 /**
- * @returns {{status:'ok'|'scrap'|'blocked', reason?:string, grade?:string, units?:number, uzs?:number,
+ * @returns {{status:'ok'|'scrap'|'blocked'|'unpriced', reason?:string, grade?:string, units?:number, uzs?:number,
  *            low?:number, high?:number, lines?:{k:string, units:number, uzs:number}[], floored?:boolean}}
+ * 'unpriced': the category has no price list yet (everything except iPhone) — only the condition grade is known.
  */
 export function estimate(model, storageLabel, answers, settings) {
   const a = normalize(answers);
   const row = model.storages.find((r) => r.label === storageLabel);
   if (!row) return { status: 'blocked', reason: 'storage' };
   if (a.icloudOff === 'no') return { status: 'blocked', reason: 'icloud' };
+  if (!model.priced) return { status: 'unpriced', grade: a.powersOn === 'no' ? 'C' : conditionGrade(a), lines: [] };
 
   const d = model.deductions;
   const scrap = isNum(model.scrap) ? model.scrap : SCRAP_FALLBACK;

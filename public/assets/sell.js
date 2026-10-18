@@ -1,14 +1,15 @@
-// Sell wizard: one short step per screen, a live price in the bottom bar, answers saved as a draft,
-// the phone's back button moves between steps, photos are shrunk on the device before upload.
-import { estimate, priceSpan, toUzs, priceVerdict, BATTERY_MIN } from './pricing.js';
-import { FAULTS, faultApplies, pick } from './questions.js';
+// Sell wizard: one short step per screen, a live price (iPhone) or condition grade (other devices) in the
+// bottom bar, answers saved as a draft, the phone's back button moves between steps, photos are shrunk
+// on the device before upload. Which questions appear depends on the category (categories.js).
+import { estimate, toUzs, priceVerdict, BATTERY_MIN } from './pricing.js';
+import { qText, opt, faultText } from './questions.js';
+import { CATEGORIES, applies, faultsFor, extrasFor, batteryMode, hasParts, stepsFor } from './categories.js';
 import { phoneArtSvg } from './art.js';
 import { $, $$, L, store, toast, digits, fold, escHtml, icon } from './ui.js';
 
+const t = L.t;
 const boot = JSON.parse($('#boot').textContent);
 const { models, settings, maxPhotos } = boot;
-const t = L.t;
-const STEP_NAMES = t.stepNames;
 const form = $('#sell-form');
 const btnNext = $('[data-next]');
 const btnPrev = $('[data-prev]');
@@ -16,6 +17,7 @@ const DRAFT = 'fb_sell_draft';
 const CONTACT = 'fb_contact';
 
 let step = 'model';
+let cat = boot.startCat; // category shown on the model step
 let photos = []; // data URLs, already resized
 let priceTouched = false;
 let submitting = false;
@@ -28,48 +30,74 @@ const val = (name) => {
 };
 const model = () => models.find((m) => m.id === val('model')) || null;
 const alive = () => val('powersOn') !== 'no';
+const conf = (m) => CATEGORIES[m.category];
 
 function answers() {
   const m = model();
+  if (!m) return {};
+  const c = conf(m);
+  const mode = batteryMode(m);
   const a = {
-    powersOn: val('powersOn'), imeiOk: val('imeiOk'), icloudOff: val('icloudOff'), refurbished: val('refurbished'),
-    sim: m?.esimQ ? val('sim') : 'sim',
-    screen: val('screen'), body: val('body'), backGlass: m?.glassBack ? val('backGlass') : 'ok', lens: val('lens'), bent: val('bent'),
+    powersOn: val('powersOn'), icloudOff: val('icloudOff'), refurbished: val('refurbished'),
+    sim: m.esimQ ? val('sim') : 'sim',
+    connectivity: c.config.includes('connectivity') ? val('connectivity') : undefined,
+    material: c.config.includes('material') ? val('material') : undefined,
+    ram: c.config.includes('ram') && val('ram') ? +val('ram') : undefined,
+    screen: val('screen'), body: val('body'),
+    backGlass: applies('backGlass', m) ? val('backGlass') : 'ok',
+    lens: c.looks.includes('lens') ? val('lens') : 'ok',
+    bent: c.looks.includes('bent') ? val('bent') : 'none',
+    inner: applies('inner', m) ? val('inner') : undefined,
     glass: val('glass'), display: val('display'),
-    battery: form.elements.battery.value ? +form.elements.battery.value : undefined,
-    faults: $$('input[name="faults"]:checked').map((x) => x.value).filter((k) => faultApplies(k, m)),
-    parts: { screen: val('part_screen'), battery: val('part_battery'), camera: val('part_camera') },
+    battery: mode === 'percent' && form.elements.battery.value ? +form.elements.battery.value : undefined,
+    batteryLevel: mode === 'level' ? val('batteryLevel') : undefined,
+    macBattery: mode === 'mac' ? val('macBattery') : undefined,
+    cycles: mode === 'mac' && form.elements.cycles.value !== '' ? +form.elements.cycles.value : undefined,
+    repair: hasParts(m) ? undefined : val('repair'),
+    parts: hasParts(m) ? { screen: val('part_screen'), battery: val('part_battery'), camera: val('part_camera') } : undefined,
   };
+  a.imeiOk = applies('imeiOk', m, a) ? val('imeiOk') : undefined;
+  a.faults = $$('input[name="faults"]:checked').map((x) => x.value).filter((k) => faultsFor(m, a).includes(k));
   for (const k of Object.keys(a)) if (a[k] === undefined || a[k] === '') delete a[k];
   return a;
 }
 
 // ---------- steps ----------
-function activeSteps() {
-  return boot.steps.filter((k) => alive() || (k !== 'faults' && k !== 'parts'));
-}
+const activeSteps = () => stepsFor(model() || { category: cat }, alive());
 
 // Returns the first unanswered question (element) in a step, or null if the step is complete.
 function missing(k) {
   const m = model();
   const need = (name) => (val(name) ? null : form.querySelector(`[data-q="${name}"]`) || form.querySelector(`[name="${name}"]`));
+  if (!m) return k === 'model' ? $('.model-list') : null;
+  const c = conf(m);
+  const a = answers();
   switch (k) {
-    case 'model': return m ? null : $('.model-list');
+    case 'model': return null;
     case 'config':
+      if (c.config.includes('ram') && !val('ram')) return $('[data-ram]');
       if (!val('storage')) return $('[data-storages]');
+      if (c.config.includes('material') && need('material')) return need('material');
+      if (c.config.includes('connectivity') && need('connectivity')) return need('connectivity');
       if (!val('color')) return $('[data-colors]');
       return m.esimQ ? need('sim') : null;
     case 'basic':
-      return need('powersOn') || (alive() && need('imeiOk')) || need('icloudOff') || (alive() && need('refurbished'));
+      return need('powersOn') || (alive() && applies('imeiOk', m, a) && need('imeiOk')) || need('icloudOff') || (alive() && need('refurbished'));
     case 'looks':
-      return need('screen') || need('body') || (m?.glassBack && need('backGlass')) || need('lens') || need('bent');
+      return need('screen') || (applies('inner', m) && need('inner')) || need('body') || (applies('backGlass', m) && need('backGlass'))
+        || (c.looks.includes('lens') && need('lens')) || (c.looks.includes('bent') && need('bent'));
     case 'screen': {
       if (need('glass')) return need('glass');
       if (!alive()) return null;
       if (need('display')) return need('display');
-      const b = +form.elements.battery.value;
-      return b >= 1 && b <= 100 ? null : form.elements.battery.closest('.q');
+      const mode = batteryMode(m);
+      if (mode === 'percent') { const b = +form.elements.battery.value; return b >= 1 && b <= 100 ? null : form.elements.battery.closest('.q'); }
+      if (mode === 'level') return need('batteryLevel');
+      if (need('macBattery')) return need('macBattery');
+      const cy = form.elements.cycles.value;
+      return cy === '' || (+cy >= 0 && +cy <= 5000) ? null : form.elements.cycles.closest('.field');
     }
+    case 'faults': return hasParts(m) ? null : need('repair');
     case 'details': {
       if (!(+digits(form.elements.price.value) >= 10000)) return form.elements.price.closest('.field');
       if (!form.elements.region.value) return form.elements.region.closest('.field');
@@ -77,7 +105,7 @@ function missing(k) {
       if (digits(form.elements.phone.value).length !== 9) return form.elements.phone.closest('.field');
       const tg = form.elements.telegram.value.trim().replace(/^@/, '');
       if (tg && !/^[A-Za-z0-9_]{5,32}$/.test(tg)) return form.elements.telegram.closest('.field');
-      return need('uzimei');
+      return applies('uzimei', m, a) ? need('uzimei') : null;
     }
     default: return null;
   }
@@ -94,7 +122,7 @@ function show(k, { push = true, focus = true } = {}) {
   const i = list.indexOf(k);
   $('[data-step-num]').textContent = i + 1;
   $('[data-step-total]').textContent = list.length;
-  $('[data-step-name]').textContent = STEP_NAMES[k];
+  $('[data-step-name]').textContent = t.stepNames[k];
   $('[data-progress]').style.width = `${((i + 1) / list.length) * 100}%`;
   btnPrev.hidden = i === 0;
   btnNext.disabled = false;
@@ -135,7 +163,7 @@ document.addEventListener('click', (e) => {
   prev();
 }, true);
 
-// ---------- model step ----------
+// ---------- model step: category, series, search ----------
 const search = $('[data-model-search]');
 let series = $('[data-series].is-on')?.dataset.series || '';
 function setSeries(s) {
@@ -146,23 +174,30 @@ function setSeries(s) {
     c.setAttribute('aria-pressed', String(on));
   }
 }
-$$('[data-series]').forEach((c) => c.addEventListener('click', () => {
-  setSeries(c.dataset.series);
-  search.value = '';
-  filterModels();
-}));
+function setCat(c, { keepSeries = false } = {}) {
+  cat = c;
+  for (const b of $$('[data-cat]')) {
+    const on = b.dataset.cat === c;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-pressed', String(on));
+  }
+  for (const chip of $$('[data-series-cat]')) chip.hidden = chip.dataset.seriesCat !== c;
+  if (!keepSeries) setSeries('');
+}
+$$('[data-cat]').forEach((b) => b.addEventListener('click', () => { setCat(b.dataset.cat); search.value = ''; filterModels(); }));
+$$('[data-series]').forEach((c) => c.addEventListener('click', () => { setSeries(c.dataset.series); search.value = ''; filterModels(); }));
+
 function filterModels() {
   const words = fold(search.value).replace(/iphone|айфон|ayfon/g, ' ').split(' ').filter(Boolean);
-  // Typing searches every series, so "13 pro" is found even when "iPhone 15" was picked on the home page.
-  if (words.length && series) setSeries('');
   let any = false;
   for (const g of $$('[data-group]')) {
-    if (series && g.dataset.series !== series) { g.hidden = true; continue; }
+    // Typing searches every category; otherwise show the chosen category (and series).
+    const inView = words.length ? true : g.dataset.groupCat === cat && (!series || g.dataset.series === series);
     let n = 0;
-    for (const opt of $$('.model-opt', g)) {
-      const hay = ` ${opt.dataset.name}`;
-      const ok = words.every((w) => hay.includes(` ${w}`));
-      opt.hidden = !ok;
+    for (const o of $$('.model-opt', g)) {
+      const hay = ` ${o.dataset.name}`;
+      const ok = inView && words.every((w) => hay.includes(` ${w}`));
+      o.hidden = !ok;
       if (ok) n++;
     }
     g.hidden = n === 0;
@@ -175,8 +210,7 @@ search.addEventListener('input', filterModels);
 form.addEventListener('change', (e) => {
   const el = e.target;
   if (el.name === 'model') applyModel();
-  if (el.name === 'storage' || el.name === 'color') markChecked();
-  if (el.name === 'powersOn' || el.name === 'icloudOff') applyConditions();
+  if (['powersOn', 'icloudOff', 'connectivity'].includes(el.name)) applyConditions();
   if (el.type === 'radio' || el.type === 'checkbox') markChecked();
   update();
 });
@@ -196,27 +230,70 @@ form.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && e.target.matches('input:not([type=search])')) { e.preventDefault(); next(); }
 });
 
-// Model-specific options: storage sizes, real colours, which questions apply.
+// ---------- per-model options and wording ----------
+const radio = (name, value, label, checked) => `<label class="opt" data-v="${escHtml(value)}"><input type="radio" name="${name}" value="${escHtml(value)}" required ${checked ? 'checked' : ''}><span class="opt-box"><span class="opt-t">${escHtml(label)}</span></span><span class="opt-check">${icon('check')}</span></label>`;
+
 function applyModel() {
   const m = model();
   if (!m) return;
+  const keep = { storage: val('storage'), color: val('color'), ram: val('ram'), material: val('material'), connectivity: val('connectivity') };
   $('[data-model-title]').textContent = m.name;
-  const prevStorage = val('storage');
-  const prevColor = val('color');
-  $('[data-storages]').innerHTML = m.storages.map((s) => `<label class="opt"><input type="radio" name="storage" value="${escHtml(s.label)}" required ${s.label === prevStorage ? 'checked' : ''}><span class="opt-box"><span class="opt-t">${escHtml(s.label)}</span></span><span class="opt-check">${icon('check')}</span></label>`).join('');
-  $('[data-colors]').innerHTML = m.colors.map((c) => `<label class="swatch-opt"><input type="radio" name="color" value="${c.k}" required ${c.k === prevColor ? 'checked' : ''}><span class="swatch-dot" style="--c:${c.hex}"></span>${escHtml(L.colors[c.k] || c.k)}</label>`).join('');
-  $$('[data-if="esimQ"]').forEach((el) => { el.hidden = !m.esimQ; });
-  $$('[data-if="glassBack"]').forEach((el) => { el.hidden = !m.glassBack; });
-  for (const f of FAULTS) {
-    const row = $(`[data-fault="${f.k}"]`);
-    row.hidden = !(!f.when || f.when(m));
-    row.querySelector('[data-fault-label]').textContent = pick(L.faults[f.k].q, m);
+  $('[data-storage-legend]').textContent = m.category === 'macbook' ? t.ssdQ : m.category === 'watch' ? t.sizeQ : t.storageQ;
+  // A spec with only one possible value (e.g. Apple Watch Ultra: 49 mm, titanium, cellular) is pre-selected.
+  const only = (list) => (list || []).length === 1;
+  $('[data-storages]').innerHTML = m.storages.map((s) => radio('storage', s.label, s.label, s.label === keep.storage || only(m.storages))).join('');
+  $('[data-ram]').innerHTML = (m.ram || []).map((r) => radio('ram', String(r), `${r} GB`, String(r) === keep.ram || only(m.ram))).join('');
+  $('[data-q="material"] [data-opts]').innerHTML = (m.materials || []).map((v) => radio('material', v, opt(L, 'material', v, m.category).t, v === keep.material || only(m.materials))).join('');
+  $('[data-q="connectivity"] [data-opts]').innerHTML = (m.connectivity || []).map((v) => radio('connectivity', v, opt(L, 'connectivity', v, m.category).t, v === keep.connectivity || only(m.connectivity))).join('');
+  $('[data-colors]').innerHTML = m.colors.map((col) => `<label class="swatch-opt"><input type="radio" name="color" value="${col.k}" required ${col.k === keep.color ? 'checked' : ''}><span class="swatch-dot" style="--c:${col.hex}"></span>${escHtml(L.colors[col.k] || col.k)}</label>`).join('');
+  // Reword every question for this category (e.g. Samsung account instead of iCloud, "Case" on a watch).
+  for (const fs of $$('[data-q]')) {
+    const q = qText(L, fs.dataset.q, m.category);
+    const title = fs.querySelector('[data-q-title]');
+    if (title && q.title) title.textContent = q.title;
+    const hint = fs.querySelector('[data-q-hint]');
+    if (hint) { hint.hidden = !q.hint; hint.querySelector('span').textContent = q.hint || ''; }
+    for (const o of $$('.opt[data-v]', fs)) {
+      const w = opt(L, fs.dataset.q, o.dataset.v, m.category);
+      o.querySelector('.opt-t').textContent = w.t;
+      const d = o.querySelector('.opt-d');
+      if (d) d.textContent = w.d;
+    }
   }
+  for (const row of $$('[data-fault]')) row.querySelector('[data-fault-label]').textContent = faultText(L, row.dataset.fault, m).q;
+  setCat(m.category, { keepSeries: true });
+  applyConditions();
   markChecked();
 }
 
+// Show only the questions, faults and extras that apply to this model and the answers so far.
+const COND = {
+  imeiOk: (m, a) => alive() && applies('imeiOk', m, a),
+  esimQ: (m) => !!m.esimQ,
+  ram: (m) => conf(m).config.includes('ram'),
+  material: (m) => conf(m).config.includes('material'),
+  connectivity: (m) => conf(m).config.includes('connectivity'),
+  inner: (m) => applies('inner', m),
+  backGlass: (m) => applies('backGlass', m),
+  lens: (m) => conf(m).looks.includes('lens'),
+  bent: (m) => conf(m).looks.includes('bent'),
+  'battery-percent': (m) => batteryMode(m) === 'percent',
+  'battery-level': (m) => batteryMode(m) === 'level',
+  'battery-mac': (m) => batteryMode(m) === 'mac',
+  repair: (m) => !hasParts(m),
+  uzimei: (m, a) => applies('uzimei', m, a),
+};
 function applyConditions() {
-  $$('[data-if="powersOn"]').forEach((el) => { el.hidden = !alive(); });
+  const m = model();
+  const a = answers();
+  for (const el of $$('[data-if]')) {
+    const test = COND[el.dataset.if];
+    el.hidden = !(el.dataset.if === 'powersOn' ? alive() : m && test && test(m, a));
+  }
+  const faults = m ? faultsFor(m, a) : [];
+  for (const row of $$('[data-fault]')) row.hidden = !faults.includes(row.dataset.fault);
+  const extras = m ? extrasFor(m) : [];
+  for (const x of $$('[data-extra]')) x.hidden = !extras.includes(x.dataset.extra);
   $('[data-icloud-block]').hidden = !blocked();
 }
 
@@ -235,15 +312,16 @@ num.addEventListener('input', () => {
   range.value = Math.max(50, v || 100);
   batteryHint();
 });
+// Price effect of battery health is only known for iPhones (they have a price list).
 function batteryHint() {
   const b = +num.value;
   const el = $('[data-battery-hint]');
-  if (!b) { el.textContent = ''; return; }
+  if (!b || !model()?.priced) { el.textContent = ''; return; }
   const h = t.batteryHints;
   el.textContent = b >= BATTERY_MIN.A ? h.great : b >= BATTERY_MIN['B+'] ? h.good : b >= BATTERY_MIN.B ? h.fair : h.poor;
 }
 
-// ---------- live price ----------
+// ---------- live price / grade ----------
 function currentEstimate() {
   const m = model();
   const storage = val('storage');
@@ -251,18 +329,21 @@ function currentEstimate() {
   return estimate(m, storage, answers(), settings);
 }
 const conditionDone = () => !missing('basic') && !missing('looks') && !missing('screen');
+const specText = (m) => [m?.category === 'macbook' && val('ram') ? `${val('ram')} GB` : null, val('storage')].filter(Boolean).join(' · ');
 
 function update() {
   const m = model();
   const est = currentEstimate();
   const label = $('[data-bar-label]');
   const out = $('[data-bar-price]');
-  let lineHtml = '';
   if (!m) { label.textContent = t.estPrice; out.textContent = '—'; }
-  else if (!est) {
-    const span = priceSpan(m);
+  else if (!m.priced) {
+    label.textContent = t.barGrade;
+    out.textContent = est?.status === 'blocked' ? t.barNoPrice : conditionDone() && est ? `${est.grade.replace('-', '−')} · ${L.grades[est.grade].name}` : '—';
+  } else if (!est) {
+    const prices = m.storages.flatMap((r) => [r.A, r['A-'], r['B+'], r.B, r.base]).filter((x) => typeof x === 'number');
     label.textContent = t.barModelPrice(m.name);
-    out.textContent = L.range(toUzs(span.min, settings), toUzs(span.max, settings));
+    out.textContent = L.range(toUzs(Math.min(...prices), settings), toUzs(Math.max(...prices), settings));
   } else if (est.status === 'blocked') {
     label.textContent = t.barIcloud;
     out.textContent = t.barNoPrice;
@@ -274,15 +355,15 @@ function update() {
     label.textContent = t.estPrice;
     out.textContent = L.price(est.uzs);
   }
-  if (est?.lines) lineHtml = linesHtml(est);
 
   // Desktop summary card.
   const color = m?.colors.find((c) => c.k === val('color'));
-  $('[data-summary-art]').innerHTML = m ? phoneArtSvg(m.cam, color?.hex, m.name) : '';
+  $('[data-summary-art]').innerHTML = m ? phoneArtSvg(m.art, color?.hex, m.name) : '';
   $('[data-summary-model]').textContent = m ? m.name : t.pickModel;
-  $('[data-summary-sub]').textContent = [val('storage'), color && L.colors[color.k]].filter(Boolean).join(' · ');
+  $('[data-summary-sub]').textContent = [specText(m), color && L.colors[color.k]].filter(Boolean).join(' · ');
+  $('[data-summary-label]').textContent = m && !m.priced ? t.barGrade : t.estPrice;
   $('[data-summary-price]').textContent = out.textContent;
-  $('[data-summary-lines]').innerHTML = conditionDone() ? lineHtml : '';
+  $('[data-summary-lines]').innerHTML = conditionDone() && est?.lines?.length ? linesHtml(est) : '';
 
   if (step === 'details') priceHint();
   $('[data-all-ok]').hidden = $$('input[name="faults"]:checked').some((x) => !x.closest('[hidden]'));
@@ -297,14 +378,21 @@ function renderResult() {
   const est = currentEstimate();
   const color = m.colors.find((c) => c.k === val('color'));
   const a = answers();
+  const top = `<div class="result-top">${phoneArtSvg(m.art, color?.hex, m.name)}
+      <div><h2>${escHtml(m.name)}, ${escHtml(specText(m))}</h2>
+      <p>${gradeChip(est.grade)}${color ? ` <span>${escHtml(L.colors[color.k])}</span>` : ''}${a.battery ? ` <span class="bat">${icon('battery')}${a.battery}%</span>` : ''}</p></div>
+    </div>`;
+  const change = `<div class="result-actions"><button class="btn btn-ghost" type="button" data-goto="looks">${icon('refresh')}${t.changeAnswers}</button></div>`;
+  if (est.status === 'unpriced') {
+    $('[data-result]').innerHTML = `<div class="result-card" tabindex="-1">${top}
+      <div class="notice notice-info">${icon('info')}<div><b>${escHtml(t.noAutoTitle(L.cats[m.category]))}</b> ${escHtml(t.noAutoText)}</div></div>
+      ${change}</div>`;
+    return;
+  }
   const reason = est.status === 'scrap'
     ? `<div class="notice notice-warn">${icon('info')}<div>${a.powersOn === 'no' ? t.scrapDead : t.scrapImei}</div></div>` : '';
   const floor = est.floored ? `<p class="result-note">${icon('info')}${t.floorNote}</p>` : '';
-  $('[data-result]').innerHTML = `<div class="result-card" tabindex="-1">
-    <div class="result-top">${phoneArtSvg(m.cam, color?.hex, m.name)}
-      <div><h2>${escHtml(m.name)}, ${escHtml(val('storage'))}</h2>
-      <p>${gradeChip(est.grade)}${color ? ` <span>${escHtml(L.colors[color.k])}</span>` : ''}${a.battery ? ` <span class="bat">${icon('battery')}${a.battery}%</span>` : ''}</p></div>
-    </div>
+  $('[data-result]').innerHTML = `<div class="result-card" tabindex="-1">${top}
     <p class="result-label">${t.estPrice}</p>
     <p class="result-price">${L.price(est.uzs)}</p>
     <p class="result-range">${t.resultRange} ${L.money(est.low)} – ${L.price(est.high)}</p>
@@ -312,7 +400,7 @@ function renderResult() {
     <ul class="result-lines">${linesHtml(est)}<li class="total"><span>${t.total}</span><b>${L.price(est.uzs)}</b></li></ul>
     ${floor}
     <p class="result-note">${icon('info')}${t.resultNote}</p>
-    <div class="result-actions"><button class="btn btn-ghost" type="button" data-goto="looks">${icon('refresh')}${t.changeAnswers}</button></div>
+    ${change}
   </div>`;
 }
 document.addEventListener('click', (e) => {
@@ -323,14 +411,16 @@ document.addEventListener('click', (e) => {
 // ---------- details step ----------
 function prepareDetails() {
   const est = currentEstimate();
-  if (!priceTouched && est) form.elements.price.value = L.money(est.uzs);
+  if (!priceTouched && est?.uzs) form.elements.price.value = L.money(est.uzs);
   const c = store.get(CONTACT, {});
   for (const k of ['region', 'name', 'phone', 'telegram']) if (c[k] && !form.elements[k].value) form.elements[k].value = c[k];
+  applyConditions();
   priceHint();
 }
 function priceHint() {
   const est = currentEstimate();
   const el = $('[data-price-hint]');
+  if (est?.status === 'unpriced') { el.textContent = t.setOwnPrice; return; }
   const p = +digits(form.elements.price.value);
   if (!est || est.status === 'blocked') { el.innerHTML = ''; return; }
   const v = p ? priceVerdict(p, est.uzs) : null;
@@ -418,12 +508,14 @@ async function submit() {
   btnNext.disabled = true;
   btnNext.textContent = t.publishing;
   const el = form.elements;
+  const m = model();
+  const a = answers();
   const payload = {
-    model: val('model'), storage: val('storage'), color: val('color'), answers: answers(),
+    model: m.id, storage: val('storage'), color: val('color'), answers: a,
     price: digits(el.price.value), region: el.region.value, name: el.name.value.trim(),
     phone: digits(el.phone.value), telegram: el.telegram.value.trim(), description: el.description.value.trim(),
-    uzimei: val('uzimei'),
-    extras: Object.fromEntries(['box', 'cable', 'receipt'].map((k) => [k, el[`extra_${k}`].checked])),
+    uzimei: applies('uzimei', m, a) ? val('uzimei') : null,
+    extras: Object.fromEntries(extrasFor(m).map((k) => [k, el[`extra_${k}`].checked])),
     photos,
   };
   try {
@@ -478,14 +570,17 @@ function restoreDraft(data) {
 const draft = store.session.get(DRAFT, null);
 if (boot.preModel) {
   if (draft && draft.model === boot.preModel) restoreDraft(draft);
-  const r = form.querySelector(`input[name="model"][value="${CSS.escape(boot.preModel)}"]`);
-  r.checked = true;
+  form.querySelector(`input[name="model"][value="${CSS.escape(boot.preModel)}"]`).checked = true;
   applyModel();
 } else if (draft) restoreDraft(draft);
+if (model() && !boot.preModel && boot.startCat !== model().category && new URLSearchParams(location.search).has('cat')) {
+  // The link asked for another category than the saved draft: honour the link.
+  setCat(boot.startCat);
+} else if (model()) setCat(model().category, { keepSeries: !!series });
 applyConditions();
 markChecked();
-if (search.value || series) filterModels();
-// Arriving from a home-page series chip: make sure the active filter chip is visible in its scrolling row.
+filterModels();
+// Arriving from a series link: make sure the active filter chip is visible in its scrolling row.
 const seriesRow = $('.series-filter');
 const activeChip = seriesRow?.querySelector('.is-on');
 if (activeChip && series) {

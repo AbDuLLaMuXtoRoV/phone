@@ -1,8 +1,9 @@
-# Fonbozor — used iPhone marketplace for Uzbekistan
+# Fonbozor — used Apple & Samsung device marketplace for Uzbekistan
 
-Mobile-first marketplace where people sell and buy used phones. Sellers answer a short set of
-condition questions and get an instant price in **UZS (Uzbek soʻm)**, calculated from `Apple_Used_Price_List_EN.xlsx`
-with every deduction shown line by line. Interface in **English and Korean**, switchable from the header.
+Mobile-first marketplace where people sell and buy used **iPhone, Samsung Galaxy, iPad, MacBook and Apple Watch**.
+Sellers answer condition questions tailored to the device. iPhones get an instant price in **UZS (Uzbek soʻm)**,
+calculated from `Apple_Used_Price_List_EN.xlsx` with every deduction shown line by line; the other categories have
+no price list yet, so the seller sets the price and buyers still get the same condition grade and report. Interface in **English and Korean**, switchable from the header.
 
 Why it is built this way: see [ANALYSIS.md](ANALYSIS.md) (problems found on fongabi.com and how each is solved here).
 
@@ -83,6 +84,21 @@ All list values are in units of **10,000 KRW** (stated in the sheet's own notes)
 - Two camera deductions were transcribed without a minus sign (iPhone 7 “1”, XS Max “2”); they are treated as deductions.
 - The Korean “domestic vs overseas” distinction is dropped (it has no meaning in Uzbekistan), except eSIM-only units.
 
+## Categories
+
+| Category | Models | Specs asked | Battery | Price |
+|---|---|---|---|---|
+| iPhone | 42 (6 → 17 Pro Max, SE) | storage, colour, SIM type | health % | automatic, from the price list |
+| Samsung Galaxy | 52 (S, Z Fold/Flip, A, Note) | storage, colour | good / average / weak | set by the seller |
+| iPad | 20 (iPad, mini, Air, Pro) | storage, Wi‑Fi or Cellular, colour | good / average / weak | set by the seller |
+| MacBook | 24 (Air and Pro, M1 → M5) | memory, SSD, colour | condition + cycle count | set by the seller |
+| Apple Watch | 12 (Series, SE, Ultra) | case size, material, GPS or Cellular, colour | health % | set by the seller |
+
+Questions follow the device: Samsung asks about the Samsung/Google account lock, fingerprint sensor, S Pen and (on
+foldables) the inner screen and hinge; iPads about Apple Pencil and cellular; MacBooks about keyboard, trackpad and
+ports; Apple Watches about sensors and the Digital Crown. IMEI questions appear only for phones and cellular iPads.
+To add a model, add a line to `src/devices.js`.
+
 ## Languages
 
 English is the default. Korean is shown when the browser is set to Korean, or after choosing **한국어** in the
@@ -95,7 +111,7 @@ The first version had Uzbek URLs (`/sotish`, `/telefonlar`…); they redirect to
 | URL | |
 |---|---|
 | `/` | Home: price check search, newest listings, how it works, grades, safety tips, FAQ |
-| `/sell` | Sell wizard (9 short steps → price → listing details → publish) |
+| `/sell` | Sell wizard: pick a category and model, short condition steps, price (iPhone) or grade, listing details, publish. `?cat=`, `?series=`, `?model=` preselect |
 | `/phones` | Catalogue with search, series chips, filters (bottom sheet on phones, sidebar on desktop) |
 | `/phone/:id` | Listing: price vs system estimate, breakdown, condition report, call / Telegram |
 | `/prices` | Price guide for every model and storage |
@@ -109,7 +125,9 @@ The first version had Uzbek URLs (`/sotish`, `/telefonlar`…); they redirect to
 server.js                 HTTP server, routing, validation, uploads
 src/config.js             settings
 src/catalog.js            price list + model facts
-src/model-meta.js         per-model facts the sheet lacks: year, colours, Face/Touch ID, eSIM, camera layout
+src/model-meta.js         iPhone facts the sheet lacks: year, colours, Face/Touch ID, eSIM, camera layout
+src/devices.js            Samsung Galaxy, iPad, MacBook and Apple Watch catalogues (models, storage, RAM, sizes, colours)
+public/assets/categories.js which specs, questions, faults and extras each category uses (shared)
 src/db.js, src/seed.js    SQLite storage, demo data
 src/views/*.js            server-rendered pages
 public/assets/pricing.js  price engine (shared by browser and server)
@@ -127,5 +145,6 @@ test/pricing.test.js      price-engine tests
 - More languages: copy `public/assets/i18n/en.js`, translate it, and add it to `src/i18n.js` and the switch in `src/views/layout.js`.
 - Phone-number login with SMS code, instead of the per-device owner token used now.
 - Admin/moderation panel (hide listings, edit exchange rate without restart).
-- Price lists for Samsung and Xiaomi.
+- Price lists for Samsung, iPad, MacBook and Apple Watch. Once one exists, give those models price rows like the
+  iPhone ones in `data/prices.json` and set `priced: true`; the engine and the wizard already handle the rest.
 - Hosting: any Node 22+ host works; put it behind HTTPS and back up `data/` and `uploads/`.
