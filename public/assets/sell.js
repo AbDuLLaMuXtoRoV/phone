@@ -1,13 +1,14 @@
 // Sell wizard: one short step per screen, a live price in the bottom bar, answers saved as a draft,
 // the phone's back button moves between steps, photos are shrunk on the device before upload.
 import { estimate, priceSpan, toUzs, priceVerdict, BATTERY_MIN } from './pricing.js';
-import { FAULTS, GRADES } from './questions.js';
+import { FAULTS, faultApplies, pick } from './questions.js';
 import { phoneArtSvg } from './art.js';
-import { $, $$, store, toast, money, som, digits, fold, escHtml, icon } from './ui.js';
+import { $, $$, L, store, toast, digits, fold, escHtml, icon } from './ui.js';
 
 const boot = JSON.parse($('#boot').textContent);
 const { models, settings, maxPhotos } = boot;
-const STEP_NAMES = Object.fromEntries(boot.steps);
+const t = L.t;
+const STEP_NAMES = t.stepNames;
 const form = $('#sell-form');
 const btnNext = $('[data-next]');
 const btnPrev = $('[data-prev]');
@@ -36,17 +37,16 @@ function answers() {
     screen: val('screen'), body: val('body'), backGlass: m?.glassBack ? val('backGlass') : 'ok', lens: val('lens'), bent: val('bent'),
     glass: val('glass'), display: val('display'),
     battery: form.elements.battery.value ? +form.elements.battery.value : undefined,
-    faults: $$('input[name="faults"]:checked').map((x) => x.value).filter((k) => isFaultApplicable(k, m)),
+    faults: $$('input[name="faults"]:checked').map((x) => x.value).filter((k) => faultApplies(k, m)),
     parts: { screen: val('part_screen'), battery: val('part_battery'), camera: val('part_camera') },
   };
   for (const k of Object.keys(a)) if (a[k] === undefined || a[k] === '') delete a[k];
   return a;
 }
-const isFaultApplicable = (k, m) => { const f = FAULTS.find((x) => x.k === k); return !!m && (!f.when || f.when(m)); };
 
 // ---------- steps ----------
 function activeSteps() {
-  return boot.steps.map(([k]) => k).filter((k) => alive() || (k !== 'faults' && k !== 'parts'));
+  return boot.steps.filter((k) => alive() || (k !== 'faults' && k !== 'parts'));
 }
 
 // Returns the first unanswered question (element) in a step, or null if the step is complete.
@@ -98,7 +98,7 @@ function show(k, { push = true, focus = true } = {}) {
   $('[data-progress]').style.width = `${((i + 1) / list.length) * 100}%`;
   btnPrev.hidden = i === 0;
   btnNext.disabled = false;
-  btnNext.textContent = k === 'result' ? 'Eʼlon joylash' : k === 'details' ? 'Joylash' : 'Davom etish';
+  btnNext.textContent = k === 'result' ? t.postListing : k === 'details' ? t.publish : t.continue;
   if (k === 'result') renderResult();
   if (k === 'details') prepareDetails();
   if (push && history.state?.step !== k) history.pushState({ step: k }, '', `#${k}`);
@@ -115,7 +115,7 @@ function next() {
     target.classList.add('is-missing');
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setTimeout(() => target.classList.remove('is-missing'), 1600);
-    toast(step === 'basic' && blocked() ? 'Avval iCloud’dan chiqing' : 'Iltimos, savolga javob bering');
+    toast(step === 'basic' && blocked() ? t.toastIcloud : t.toastAnswer);
     return;
   }
   const list = activeSteps();
@@ -173,11 +173,11 @@ function filterModels() {
 search.addEventListener('input', filterModels);
 
 form.addEventListener('change', (e) => {
-  const t = e.target;
-  if (t.name === 'model') applyModel();
-  if (t.name === 'storage' || t.name === 'color') markChecked();
-  if (t.name === 'powersOn' || t.name === 'icloudOff') applyConditions();
-  if (t.type === 'radio' || t.type === 'checkbox') markChecked();
+  const el = e.target;
+  if (el.name === 'model') applyModel();
+  if (el.name === 'storage' || el.name === 'color') markChecked();
+  if (el.name === 'powersOn' || el.name === 'icloudOff') applyConditions();
+  if (el.type === 'radio' || el.type === 'checkbox') markChecked();
   update();
 });
 form.addEventListener('input', (e) => {
@@ -204,13 +204,13 @@ function applyModel() {
   const prevStorage = val('storage');
   const prevColor = val('color');
   $('[data-storages]').innerHTML = m.storages.map((s) => `<label class="opt"><input type="radio" name="storage" value="${escHtml(s.label)}" required ${s.label === prevStorage ? 'checked' : ''}><span class="opt-box"><span class="opt-t">${escHtml(s.label)}</span></span><span class="opt-check">${icon('check')}</span></label>`).join('');
-  $('[data-colors]').innerHTML = m.colors.map((c) => `<label class="swatch-opt"><input type="radio" name="color" value="${c.k}" required ${c.k === prevColor ? 'checked' : ''}><span class="swatch-dot" style="--c:${c.hex}"></span>${escHtml(c.uz)}</label>`).join('');
+  $('[data-colors]').innerHTML = m.colors.map((c) => `<label class="swatch-opt"><input type="radio" name="color" value="${c.k}" required ${c.k === prevColor ? 'checked' : ''}><span class="swatch-dot" style="--c:${c.hex}"></span>${escHtml(L.colors[c.k] || c.k)}</label>`).join('');
   $$('[data-if="esimQ"]').forEach((el) => { el.hidden = !m.esimQ; });
   $$('[data-if="glassBack"]').forEach((el) => { el.hidden = !m.glassBack; });
   for (const f of FAULTS) {
     const row = $(`[data-fault="${f.k}"]`);
     row.hidden = !(!f.when || f.when(m));
-    row.querySelector('[data-fault-label]').textContent = f.t(m);
+    row.querySelector('[data-fault-label]').textContent = pick(L.faults[f.k].q, m);
   }
   markChecked();
 }
@@ -239,10 +239,8 @@ function batteryHint() {
   const b = +num.value;
   const el = $('[data-battery-hint]');
   if (!b) { el.textContent = ''; return; }
-  el.textContent = b >= BATTERY_MIN.A ? 'Aʼlo batareya — narxga taʼsir qilmaydi.'
-    : b >= BATTERY_MIN['B+'] ? 'Yaxshi. 90% dan past boʻlgani uchun narx biroz pasayadi.'
-      : b >= BATTERY_MIN.B ? 'Oʻrtacha. Narx pasayadi.'
-        : 'Batareya almashtirishni talab qiladi — narx sezilarli pasayadi.';
+  const h = t.batteryHints;
+  el.textContent = b >= BATTERY_MIN.A ? h.great : b >= BATTERY_MIN['B+'] ? h.good : b >= BATTERY_MIN.B ? h.fair : h.poor;
 }
 
 // ---------- live price ----------
@@ -260,29 +258,29 @@ function update() {
   const label = $('[data-bar-label]');
   const out = $('[data-bar-price]');
   let lineHtml = '';
-  if (!m) { label.textContent = 'Taxminiy narx'; out.textContent = '—'; }
+  if (!m) { label.textContent = t.estPrice; out.textContent = '—'; }
   else if (!est) {
     const span = priceSpan(m);
-    label.textContent = `${m.name} narxi`;
-    out.textContent = `${mln(toUzs(span.min, settings))}–${mln(toUzs(span.max, settings))} mln soʻm`;
+    label.textContent = t.barModelPrice(m.name);
+    out.textContent = L.range(toUzs(span.min, settings), toUzs(span.max, settings));
   } else if (est.status === 'blocked') {
-    label.textContent = 'iCloud yoqilgan';
-    out.textContent = 'Baholanmaydi';
+    label.textContent = t.barIcloud;
+    out.textContent = t.barNoPrice;
   } else if (!conditionDone()) {
     // Unanswered questions count as "perfect", so this is the ceiling until the condition steps are done.
-    label.textContent = 'Eng yuqori narx';
-    out.textContent = som(est.uzs);
+    label.textContent = t.barMax;
+    out.textContent = L.price(est.uzs);
   } else {
-    label.textContent = 'Taxminiy narx';
-    out.textContent = som(est.uzs);
+    label.textContent = t.estPrice;
+    out.textContent = L.price(est.uzs);
   }
   if (est?.lines) lineHtml = linesHtml(est);
 
   // Desktop summary card.
   const color = m?.colors.find((c) => c.k === val('color'));
   $('[data-summary-art]').innerHTML = m ? phoneArtSvg(m.cam, color?.hex, m.name) : '';
-  $('[data-summary-model]').textContent = m ? m.name : 'Modelni tanlang';
-  $('[data-summary-sub]').textContent = [val('storage'), color?.uz].filter(Boolean).join(' · ');
+  $('[data-summary-model]').textContent = m ? m.name : t.pickModel;
+  $('[data-summary-sub]').textContent = [val('storage'), color && L.colors[color.k]].filter(Boolean).join(' · ');
   $('[data-summary-price]').textContent = out.textContent;
   $('[data-summary-lines]').innerHTML = conditionDone() ? lineHtml : '';
 
@@ -291,9 +289,8 @@ function update() {
   saveDraft();
 }
 
-const mln = (n) => (n / 1e6).toFixed(n < 1e7 ? 2 : 1).replace(/\.?0+$/, '').replace('.', ',');
-const linesHtml = (est) => est.lines.map((l) => `<li><span>${escHtml(l.label)}</span><b class="${l.units < 0 ? 'neg' : ''}">${l.units < 0 ? '−' : ''}${som(Math.abs(l.uzs))}</b></li>`).join('');
-const gradeChip = (g) => `<span class="grade grade-${g === 'A' || g === 'A-' ? 'a' : g === 'C' ? 'c' : 'b'}">${g.replace('-', '−')} · ${GRADES[g].name}</span>`;
+const linesHtml = (est) => est.lines.map((l) => `<li><span>${escHtml(L.line(l, model()))}</span><b class="${l.units < 0 ? 'neg' : ''}">${l.units < 0 ? '−' : ''}${L.price(Math.abs(l.uzs))}</b></li>`).join('');
+const gradeChip = (g) => `<span class="grade grade-${g === 'A' || g === 'A-' ? 'a' : g === 'C' ? 'c' : 'b'}">${g.replace('-', '−')} · ${L.grades[g].name}</span>`;
 
 function renderResult() {
   const m = model();
@@ -301,21 +298,21 @@ function renderResult() {
   const color = m.colors.find((c) => c.k === val('color'));
   const a = answers();
   const reason = est.status === 'scrap'
-    ? `<div class="notice notice-warn">${icon('info')}<div>Telefon ${a.powersOn === 'no' ? 'yoqilmagani' : 'IMEI koʻrinmagani'} uchun ehtiyot qism sifatida baholandi.</div></div>` : '';
-  const floor = est.floored ? `<p class="result-note">${icon('info')}Nosozliklar koʻp, shuning uchun ehtiyot qism narxi koʻrsatildi.</p>` : '';
+    ? `<div class="notice notice-warn">${icon('info')}<div>${a.powersOn === 'no' ? t.scrapDead : t.scrapImei}</div></div>` : '';
+  const floor = est.floored ? `<p class="result-note">${icon('info')}${t.floorNote}</p>` : '';
   $('[data-result]').innerHTML = `<div class="result-card" tabindex="-1">
     <div class="result-top">${phoneArtSvg(m.cam, color?.hex, m.name)}
       <div><h2>${escHtml(m.name)}, ${escHtml(val('storage'))}</h2>
-      <p>${gradeChip(est.grade)}${color ? ` <span>${escHtml(color.uz)}</span>` : ''}${a.battery ? ` <span class="bat">${icon('battery')}${a.battery}%</span>` : ''}</p></div>
+      <p>${gradeChip(est.grade)}${color ? ` <span>${escHtml(L.colors[color.k])}</span>` : ''}${a.battery ? ` <span class="bat">${icon('battery')}${a.battery}%</span>` : ''}</p></div>
     </div>
-    <p class="result-label">Taxminiy narx</p>
-    <p class="result-price">${som(est.uzs)}</p>
-    <p class="result-range">Kelishuv oraligʻi: ${money(est.low)} – ${som(est.high)}</p>
+    <p class="result-label">${t.estPrice}</p>
+    <p class="result-price">${L.price(est.uzs)}</p>
+    <p class="result-range">${t.resultRange} ${L.money(est.low)} – ${L.price(est.high)}</p>
     ${reason}
-    <ul class="result-lines">${linesHtml(est)}<li class="total"><span>Jami</span><b>${som(est.uzs)}</b></li></ul>
+    <ul class="result-lines">${linesHtml(est)}<li class="total"><span>${t.total}</span><b>${L.price(est.uzs)}</b></li></ul>
     ${floor}
-    <p class="result-note">${icon('info')}Narx siz bergan javoblar asosida hisoblandi. Xaridor telefonni koʻrganda yakuniy narx farq qilishi mumkin.</p>
-    <div class="result-actions"><button class="btn btn-ghost" type="button" data-goto="looks">${icon('refresh')}Javoblarni oʻzgartirish</button></div>
+    <p class="result-note">${icon('info')}${t.resultNote}</p>
+    <div class="result-actions"><button class="btn btn-ghost" type="button" data-goto="looks">${icon('refresh')}${t.changeAnswers}</button></div>
   </div>`;
 }
 document.addEventListener('click', (e) => {
@@ -326,7 +323,7 @@ document.addEventListener('click', (e) => {
 // ---------- details step ----------
 function prepareDetails() {
   const est = currentEstimate();
-  if (!priceTouched && est) form.elements.price.value = money(est.uzs);
+  if (!priceTouched && est) form.elements.price.value = L.money(est.uzs);
   const c = store.get(CONTACT, {});
   for (const k of ['region', 'name', 'phone', 'telegram']) if (c[k] && !form.elements[k].value) form.elements[k].value = c[k];
   priceHint();
@@ -337,10 +334,10 @@ function priceHint() {
   const p = +digits(form.elements.price.value);
   if (!est || est.status === 'blocked') { el.innerHTML = ''; return; }
   const v = p ? priceVerdict(p, est.uzs) : null;
-  el.innerHTML = `${v ? `<span class="verdict verdict-${v.k}">${v.t}</span>` : ''} Tizim bahosi: <b>${som(est.uzs)}</b>
-    <span class="seg" role="group" aria-label="Tez tanlash">
+  el.innerHTML = `${v ? `<span class="verdict verdict-${v.k}">${L.verdict[v.k]}</span>` : ''} ${t.systemEst} <b>${L.price(est.uzs)}</b>
+    <span class="seg" role="group" aria-label="${t.quickAria}">
       <label><input type="radio" name="_quick" data-quick="0.95"><span>−5%</span></label>
-      <label><input type="radio" name="_quick" data-quick="1"><span>Baho</span></label>
+      <label><input type="radio" name="_quick" data-quick="1"><span>${t.quickEst}</span></label>
       <label><input type="radio" name="_quick" data-quick="1.05"><span>+5%</span></label>
     </span>`;
 }
@@ -348,7 +345,7 @@ document.addEventListener('change', (e) => {
   const q = e.target.closest('[data-quick]');
   if (!q) return;
   const est = currentEstimate();
-  form.elements.price.value = money(Math.round((est.uzs * +q.dataset.quick) / 10000) * 10000);
+  form.elements.price.value = L.money(Math.round((est.uzs * +q.dataset.quick) / 10000) * 10000);
   priceTouched = true;
   update();
 });
@@ -364,10 +361,10 @@ function formatPhone(el) {
 const photoInput = $('[data-photo-input]');
 photoInput.addEventListener('change', async () => {
   const files = [...photoInput.files].slice(0, maxPhotos - photos.length);
-  if (photoInput.files.length > files.length) toast(`Koʻpi bilan ${maxPhotos} ta rasm`);
+  if (photoInput.files.length > files.length) toast(t.maxPhotos(maxPhotos));
   photoInput.value = '';
   for (const f of files) {
-    try { photos.push(await shrink(f)); } catch { toast('Bu rasmni ochib boʻlmadi'); }
+    try { photos.push(await shrink(f)); } catch { toast(t.badPhoto); }
   }
   renderPhotos();
 });
@@ -392,7 +389,7 @@ function renderPhotos() {
   photos.forEach((src, i) => {
     const d = document.createElement('div');
     d.className = 'photo';
-    d.innerHTML = `<img src="${src}" alt="Rasm ${i + 1}">${i === 0 ? '<span class="photo-main">Asosiy</span>' : ''}<button type="button" data-remove="${i}" aria-label="Rasmni oʻchirish">${icon('close')}</button>`;
+    d.innerHTML = `<img src="${src}" alt="${escHtml(t.photos)} ${i + 1}">${i === 0 ? `<span class="photo-main">${escHtml(t.mainPhoto)}</span>` : ''}<button type="button" data-remove="${i}" aria-label="${escHtml(t.removePhoto)}">${icon('close')}</button>`;
     box.insertBefore(d, add);
   });
   add.hidden = photos.length >= maxPhotos;
@@ -412,14 +409,14 @@ async function submit() {
     gap.classList.add('is-missing');
     gap.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setTimeout(() => gap.classList.remove('is-missing'), 1600);
-    toast('Iltimos, maydonlarni toʻldiring');
+    toast(t.toastFill);
     return;
   }
   const errBox = $('[data-submit-error]');
   errBox.hidden = true;
   submitting = true;
   btnNext.disabled = true;
-  btnNext.textContent = 'Joylanmoqda…';
+  btnNext.textContent = t.publishing;
   const el = form.elements;
   const payload = {
     model: val('model'), storage: val('storage'), color: val('color'), answers: answers(),
@@ -432,18 +429,18 @@ async function submit() {
   try {
     const r = await fetch('/api/listings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data.error || 'Eʼlonni saqlab boʻlmadi');
+    if (!r.ok) throw new Error(data.error || t.saveFailed);
     store.set('fb_mine', [{ id: data.id, token: data.token }, ...store.get('fb_mine', [])].slice(0, 50));
     store.set(CONTACT, { region: payload.region, name: payload.name, phone: el.phone.value, telegram: payload.telegram });
     store.session.del(DRAFT);
     location.href = data.url;
   } catch (err) {
-    errBox.innerHTML = `${icon('alert')}<div>${escHtml(err.message === 'Failed to fetch' ? 'Internet aloqasi yoʻq. Qayta urinib koʻring.' : err.message)}</div>`;
+    errBox.innerHTML = `${icon('alert')}<div>${escHtml(err.message === 'Failed to fetch' ? t.offline : err.message)}</div>`;
     errBox.hidden = false;
     errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
     submitting = false;
     btnNext.disabled = false;
-    btnNext.textContent = 'Joylash';
+    btnNext.textContent = t.publish;
   }
 }
 

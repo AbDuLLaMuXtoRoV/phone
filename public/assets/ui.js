@@ -1,10 +1,11 @@
-// Small helpers shared by app.js and sell.js.
+// Small helpers shared by app.js and sell.js, plus the language pack for this page.
 
 export const $ = (s, el = document) => el.querySelector(s);
 export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 
-export const money = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-export const som = (n) => `${money(n)} soʻm`;
+const lang = ['en', 'ko'].includes(document.documentElement.lang) ? document.documentElement.lang : 'en';
+export const L = (await import(`./i18n/${lang}.js`)).default;
+
 export const digits = (s) => String(s || '').replace(/\D/g, '');
 export const fold = (s) => String(s || '').toLowerCase().replace(/[ʻʼ'`‘’]/g, "'").replace(/\s+/g, ' ').trim();
 export const escHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);

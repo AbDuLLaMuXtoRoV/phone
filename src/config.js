@@ -16,7 +16,7 @@ export default {
     // The source list is a dealer buy-back list. 1 = show those prices as they are; raise it
     // (e.g. 1.2) if you want estimates closer to private-sale prices in Uzbekistan.
     multiplier: Number(env.PRICE_MULTIPLIER) || 1,
-    // Round displayed prices to this many soʻm.
+    // Round displayed prices to this many UZS.
     roundTo: 1000,
   },
 

@@ -6,6 +6,7 @@
 //                                                                  or the base "as-is" price
 //         − deductions for each defect
 //   never below the model's scrap price.
+// Breakdown lines are language-neutral ({ k: 'fault', f: 'camera', units }); i18n/*.js `line()` words them.
 
 export const GRADE_ORDER = ['A', 'A-', 'B+', 'B', 'C'];
 // Battery health required for each grade (from the list's grade criteria).
@@ -22,6 +23,7 @@ const NOTE_DEDUCTIONS = {
 };
 // The iPhone 17 rows have no scrap price; use the latest listed one (iPhone 16 series).
 const SCRAP_FALLBACK = 5;
+const FAULT_KEYS = ['biometric', 'camera', 'wifi', 'mic', 'trueTone', 'speaker', 'charging', 'vibration', 'buttons', 'cameraButton'];
 
 export const DEFAULTS = {
   powersOn: 'yes', imeiOk: 'yes', icloudOff: 'yes', refurbished: 'no', sim: 'sim',
@@ -66,28 +68,27 @@ export function priceSpan(model, storageLabel) {
 }
 
 function basePrice(row, grade, battery, batteryAsItem) {
-  const gradeName = (g) => `${g} holat narxi`;
   if (grade === 'C' || !isNum(row[grade])) {
-    return { units: row.base, label: grade === 'C' ? 'Asosiy narx (holati B dan past)' : 'Asosiy narx', batteryItem: 0 };
+    return { units: row.base, line: { k: grade === 'C' ? 'baseBelowB' : 'base' }, batteryItem: 0 };
   }
-  if (battery >= BATTERY_MIN[grade]) return { units: row[grade], label: gradeName(grade), batteryItem: 0 };
+  if (battery >= BATTERY_MIN[grade]) return { units: row[grade], line: { k: 'gradePrice', g: grade }, batteryItem: 0 };
   // iPhone SE 2/3: low battery is counted as one "item" in the combined parts deduction instead.
-  if (batteryAsItem) return { units: row[grade], label: gradeName(grade), batteryItem: 1 };
+  if (batteryAsItem) return { units: row[grade], line: { k: 'gradePrice', g: grade }, batteryItem: 1 };
   if ((grade === 'A' || grade === 'A-') && isNum(row.battA)) {
-    return { units: row.battA, label: `${grade} holat, batareya ${BATTERY_MIN[grade]}% dan past`, batteryItem: 0 };
+    return { units: row.battA, line: { k: 'battBelow', g: grade, min: BATTERY_MIN[grade] }, batteryItem: 0 };
   }
   if (grade === 'B+' && isNum(row.battBp)) {
-    return { units: row.battBp, label: 'B+ holat, batareya 85% dan past', batteryItem: 0 };
+    return { units: row.battBp, line: { k: 'battBelow', g: 'B+', min: BATTERY_MIN['B+'] }, batteryItem: 0 };
   }
   // No battery column for this model: fall to the best lower grade whose battery requirement is met.
   const lower = GRADE_ORDER.slice(GRADE_ORDER.indexOf(grade) + 1, 4).find((g) => battery >= BATTERY_MIN[g] && isNum(row[g]));
-  if (lower) return { units: row[lower], label: `${lower} holat narxi (batareya ${battery}%)`, batteryItem: 0 };
-  return { units: row.base, label: `Asosiy narx (batareya ${battery}%)`, batteryItem: 0 };
+  if (lower) return { units: row[lower], line: { k: 'gradeAtBattery', g: lower, battery }, batteryItem: 0 };
+  return { units: row.base, line: { k: 'baseBattery', battery }, batteryItem: 0 };
 }
 
 /**
  * @returns {{status:'ok'|'scrap'|'blocked', reason?:string, grade?:string, units?:number, uzs?:number,
- *            low?:number, high?:number, lines?:{label:string, units:number, uzs:number}[], floored?:boolean}}
+ *            low?:number, high?:number, lines?:{k:string, units:number, uzs:number}[], floored?:boolean}}
  */
 export function estimate(model, storageLabel, answers, settings) {
   const a = normalize(answers);
@@ -98,40 +99,34 @@ export function estimate(model, storageLabel, answers, settings) {
   const d = model.deductions;
   const scrap = isNum(model.scrap) ? model.scrap : SCRAP_FALLBACK;
   const lines = [];
-  const take = (label, units) => { if (isNum(units) && units > 0) lines.push({ label, units: -units }); };
+  const take = (line, units) => { if (isNum(units) && units > 0) lines.push({ ...line, units: -units }); };
 
   if (a.powersOn === 'no' || a.imeiOk === 'no') {
-    lines.push({ label: a.powersOn === 'no' ? 'Yoqilmaydigan telefon (ehtiyot qism narxi)' : 'IMEI koʻrinmaydi (ehtiyot qism narxi)', units: scrap });
+    lines.push({ k: a.powersOn === 'no' ? 'scrapDead' : 'scrapImei', units: scrap });
     return finish('scrap', 'C', lines, scrap, false, settings);
   }
 
   const grade = conditionGrade(a);
   const base = basePrice(row, grade, a.battery, !!model.tiers?.batteryAsItem);
-  lines.push({ label: base.label, units: base.units });
+  lines.push({ ...base.line, units: base.units });
 
   // Screen: a broken display costs the full display deduction; otherwise glass and minor marks add up.
-  if (a.display === 'major') take('Displey nosoz', d.display);
+  if (a.display === 'major') take({ k: 'display' }, d.display);
   else {
-    if (a.glass === 'cracked') take('Ekran oynasi singan', d.glass);
+    if (a.glass === 'cracked') take({ k: 'glass' }, d.glass);
     // When the list has no separate minor value, use half the display deduction ("…or at half the LCD price").
-    if (a.display === 'minor') take('Displeyda yengil iz', isNum(d.displayMinor) ? d.displayMinor : d.display / 2);
+    if (a.display === 'minor') take({ k: 'displayMinor' }, isNum(d.displayMinor) ? d.displayMinor : d.display / 2);
   }
-  if (a.backGlass === 'cracked') take('Orqa oyna singan', d.backGlass);
-  if (a.lens === 'cracked') take('Kamera oynasi singan yoki dogʻli', NOTE_DEDUCTIONS.lensCracked);
-  if (a.bent === 'light') take('Korpus biroz egilgan', NOTE_DEDUCTIONS.bentLight);
-  if (a.bent === 'severe') take('Korpus kuchli egilgan / shishgan', NOTE_DEDUCTIONS.bentSevere);
+  if (a.backGlass === 'cracked') take({ k: 'backGlass' }, d.backGlass);
+  if (a.lens === 'cracked') take({ k: 'lens' }, NOTE_DEDUCTIONS.lensCracked);
+  if (a.bent === 'light') take({ k: 'bentLight' }, NOTE_DEDUCTIONS.bentLight);
+  if (a.bent === 'severe') take({ k: 'bentSevere' }, NOTE_DEDUCTIONS.bentSevere);
 
-  const faultLabels = {
-    biometric: model.bio === 'touch' ? 'Touch ID ishlamaydi' : 'Face ID ishlamaydi',
-    camera: 'Kamera ishlamaydi', wifi: 'Wi‑Fi / Bluetooth / kompas nosoz', mic: 'Mikrofon ishlamaydi',
-    trueTone: 'True Tone ishlamaydi', speaker: 'Dinamik ishlamaydi', charging: 'Zaryad olmaydi',
-    vibration: 'Vibratsiya ishlamaydi', buttons: 'Tugmalar ishlamaydi', cameraButton: 'Camera Control nosoz',
-  };
   for (const f of a.faults) {
-    if (!(f in faultLabels)) continue;
+    if (!FAULT_KEYS.includes(f)) continue;
     if (f === 'trueTone' && !model.trueTone) continue;
     if (f === 'cameraButton' && !model.cameraButton) continue;
-    take(faultLabels[f], f in NOTE_DEDUCTIONS ? NOTE_DEDUCTIONS[f] : d[f]);
+    take({ k: 'fault', f }, f in NOTE_DEDUCTIONS ? NOTE_DEDUCTIONS[f] : d[f]);
   }
 
   const parts = Object.values(a.parts);
@@ -140,21 +135,18 @@ export function estimate(model, storageLabel, answers, settings) {
   if (model.tiers?.batteryAsItem) {
     // SE 2/3: battery below standard + every replaced-part message count as items: 1 → -4, 2 → -6, 3+ → -8.
     const items = genuine + unknown + base.batteryItem;
-    if (items > 0) {
-      const what = [genuine + unknown > 0 ? 'almashtirilgan qism' : null, base.batteryItem ? 'batareya past' : null].filter(Boolean).join(', ');
-      take(`${what[0].toUpperCase()}${what.slice(1)} (${items} ta)`, model.tiers.values[Math.min(items, model.tiers.values.length) - 1]);
-    }
+    if (items > 0) take({ k: 'seItems', n: items }, model.tiers.values[Math.min(items, model.tiers.values.length) - 1]);
   } else {
     if (genuine > 0 && model.tiers) {
       const tier = model.tiers.values[Math.min(genuine, model.tiers.values.length) - 1];
-      take(`Original qism almashtirilgan (${genuine} ta)`, tier === 'nonGenuine' ? d.nonGenuine : tier);
+      take({ k: 'genuine', n: genuine }, tier === 'nonGenuine' ? d.nonGenuine : tier);
     }
     // Unknown-part deductions stack: one per part ("applied twice" for screen + battery).
-    if (unknown > 0 && isNum(d.nonGenuine)) take(`Nomaʼlum qism xabari (${unknown} ta)`, unknown * d.nonGenuine);
+    if (unknown > 0 && isNum(d.nonGenuine)) take({ k: 'unknown', n: unknown }, unknown * d.nonGenuine);
   }
 
-  if (a.refurbished === 'yes') take('Refurbished yoki demo', NOTE_DEDUCTIONS.refurbished);
-  if (model.esimQ && a.sim === 'esim') take('Faqat eSIM versiya', NOTE_DEDUCTIONS.esimOnly);
+  if (a.refurbished === 'yes') take({ k: 'refurbished' }, NOTE_DEDUCTIONS.refurbished);
+  if (model.esimQ && a.sim === 'esim') take({ k: 'esim' }, NOTE_DEDUCTIONS.esimOnly);
 
   let total = lines.reduce((s, l) => s + l.units, 0);
   const floored = total < scrap;
@@ -172,11 +164,9 @@ function finish(status, grade, lines, units, floored, s) {
   };
 }
 
-// How an asking price compares to the system estimate (shown as a badge to buyers).
+// How an asking price compares to the system estimate (badge for buyers): 'deal' | 'fair' | 'high'.
 export function priceVerdict(price, est) {
   if (!est) return null;
   const r = price / est;
-  if (r <= 0.92) return { k: 'deal', t: 'Arzon narx' };
-  if (r <= 1.1) return { k: 'fair', t: 'Adolatli narx' };
-  return { k: 'high', t: 'Qimmatroq' };
+  return { k: r <= 0.92 ? 'deal' : r <= 1.1 ? 'fair' : 'high' };
 }

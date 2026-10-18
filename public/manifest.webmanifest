@@ -1,7 +1,7 @@
 {
-  "name": "Fonbozor — iPhone sotish va sotib olish",
+  "name": "Fonbozor — buy and sell used iPhones",
   "short_name": "Fonbozor",
-  "lang": "uz",
+  "lang": "en",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

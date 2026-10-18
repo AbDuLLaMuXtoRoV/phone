@@ -1,8 +1,8 @@
 # Fonbozor — used iPhone marketplace for Uzbekistan
 
 Mobile-first marketplace where people sell and buy used phones. Sellers answer a short set of
-condition questions and get an instant price in **soʻm**, calculated from `Apple_Used_Price_List_EN.xlsx`
-with every deduction shown line by line. Interface in Uzbek (Latin).
+condition questions and get an instant price in **UZS (Uzbek soʻm)**, calculated from `Apple_Used_Price_List_EN.xlsx`
+with every deduction shown line by line. Interface in **English and Korean**, switchable from the header.
 
 Why it is built this way: see [ANALYSIS.md](ANALYSIS.md) (problems found on fongabi.com and how each is solved here).
 
@@ -24,7 +24,7 @@ On first start the database (`data/app.db`) is created with 18 demo listings. De
 | Variable | Default | Meaning |
 |---|---|---|
 | `PORT` | `3000` | HTTP port |
-| `KRW_TO_UZS` | `8.5` | 1 KRW in soʻm. Published rates were 8.4–9.1 in Aug–Oct 2026; update when it moves. |
+| `KRW_TO_UZS` | `8.5` | 1 KRW in UZS. Published rates were 8.4–9.1 in Aug–Oct 2026; update when it moves. |
 | `PRICE_MULTIPLIER` | `1` | The list is a Korean **dealer buy-back** list, so 1 = buy-back level. Private sales in Uzbekistan are usually higher; e.g. `1.25` raises every estimate by 25%. |
 | `SITE_NAME` | `Fonbozor` | Brand name shown on the site |
 | `TRUST_PROXY` | off | Set to `1` on hosting behind a load balancer (Render, Railway…) so per-visitor limits use the real IP. Not needed for a local Cloudflare tunnel. |
@@ -70,7 +70,7 @@ All list values are in units of **10,000 KRW** (stated in the sheet's own notes)
    cracked/stained lens −2, bent body −3 (slight) or −15 (severe), refurbished/demo −3, eSIM-only −10.
 4. Never below the model's **scrap** price. A phone that doesn't turn on or shows no IMEI gets the scrap price.
    **iCloud on** = cannot be listed.
-5. × 10,000 × `KRW_TO_UZS` × `PRICE_MULTIPLIER`, rounded to 1,000 soʻm.
+5. × 10,000 × `KRW_TO_UZS` × `PRICE_MULTIPLIER`, rounded to 1,000 UZS.
 
 ### Interpretations (the sheet does not spell these out)
 
@@ -83,16 +83,23 @@ All list values are in units of **10,000 KRW** (stated in the sheet's own notes)
 - Two camera deductions were transcribed without a minus sign (iPhone 7 “1”, XS Max “2”); they are treated as deductions.
 - The Korean “domestic vs overseas” distinction is dropped (it has no meaning in Uzbekistan), except eSIM-only units.
 
+## Languages
+
+English is the default. Korean is shown when the browser is set to Korean, or after choosing **한국어** in the
+header; the choice is remembered in a cookie. Add `?lang=ko` (or `?lang=en`) to any link to share it in that
+language. All text lives in `public/assets/i18n/en.js` and `ko.js`, which must have the same keys.
+The first version had Uzbek URLs (`/sotish`, `/telefonlar`…); they redirect to the English ones.
+
 ## Pages
 
 | URL | |
 |---|---|
 | `/` | Home: price check search, newest listings, how it works, grades, safety tips, FAQ |
-| `/sotish` | Sell wizard (9 short steps → price → listing details → publish) |
-| `/telefonlar` | Catalogue with search, series chips, filters (bottom sheet on phones, sidebar on desktop) |
-| `/telefon/:id` | Listing: price vs system estimate, breakdown, condition report, call / Telegram |
-| `/narxlar` | Price guide for every model and storage |
-| `/sevimlilar`, `/elonlarim` | Favourites and “my listings” (kept on the device, no account needed) |
+| `/sell` | Sell wizard (9 short steps → price → listing details → publish) |
+| `/phones` | Catalogue with search, series chips, filters (bottom sheet on phones, sidebar on desktop) |
+| `/phone/:id` | Listing: price vs system estimate, breakdown, condition report, call / Telegram |
+| `/prices` | Price guide for every model and storage |
+| `/saved`, `/my-listings` | Favourites and “my listings” (kept on the device, no account needed) |
 | `POST /api/estimate` | `{model, storage, answers}` → price breakdown |
 | `POST /api/listings` | Create a listing; the price estimate is always recomputed on the server |
 
@@ -106,7 +113,9 @@ src/model-meta.js         per-model facts the sheet lacks: year, colours, Face/T
 src/db.js, src/seed.js    SQLite storage, demo data
 src/views/*.js            server-rendered pages
 public/assets/pricing.js  price engine (shared by browser and server)
-public/assets/questions.js condition questions and labels in Uzbek (shared)
+public/assets/questions.js condition questions: keys and allowed answers (shared)
+public/assets/i18n/en.js  all English text   (same keys in ko.js; shared by server and browser)
+public/assets/i18n/ko.js  all Korean text
 public/assets/sell.js     sell wizard
 public/assets/app.css     styles (mobile-first, light + dark)
 scripts/import-prices.mjs xlsx → data/prices.json
@@ -115,7 +124,7 @@ test/pricing.test.js      price-engine tests
 
 ## Not done yet (next steps)
 
-- Russian and Uzbek Cyrillic versions (all Uzbek text is already in `questions.js` and the view files).
+- More languages: copy `public/assets/i18n/en.js`, translate it, and add it to `src/i18n.js` and the switch in `src/views/layout.js`.
 - Phone-number login with SMS code, instead of the per-device owner token used now.
 - Admin/moderation panel (hide listings, edit exchange rate without restart).
 - Price lists for Samsung and Xiaomi.

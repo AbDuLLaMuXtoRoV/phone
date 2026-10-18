@@ -18,7 +18,7 @@ export const MODELS = prices.models.map((m) => {
     deductions: m.deductions,
     tiers: m.tiers,
     scrap: m.scrap,
-    colors: colors.map((k) => ({ k, ...COLORS[k] })),
+    colors: colors.map((k) => ({ k, hex: COLORS[k] })),
   };
 });
 

@@ -32,7 +32,7 @@
   --shadow-lg: 0 18px 50px rgba(15, 23, 42, .16);
   --topbar-h: 56px;
   --tabbar-h: 64px;
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", "Helvetica Neue", Arial, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -134,11 +134,11 @@ h1, h2, h3, p { margin: 0; }
 .brand b { color: var(--brand); font-weight: 800; }
 .logo-mark { width: 30px; height: 30px; }
 .brand-desktop, .topnav, .topsearch, .topbar-cta { display: none; }
-.topbar-icon { margin-left: auto; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; margin-right: -8px; }
+.topbar-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; margin-right: -8px; }
 .topbar-icon .ic { width: 22px; height: 22px; }
 .topbar-back { width: 44px; height: 44px; display: grid; place-items: center; margin-left: -12px; border-radius: 12px; }
 .topbar-back .ic { width: 24px; height: 24px; }
-.topbar-title { font-weight: 700; font-size: 1.0625rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.topbar-title { flex: 1; font-weight: 700; font-size: 1.0625rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 
 @media (min-width: 960px) {
   :root { --topbar-h: 68px; }
@@ -219,7 +219,7 @@ body.is-focus .tabbar { display: none; }
 .eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: .8125rem; font-weight: 600; background: rgba(255, 255, 255, .14); padding: 6px 12px; border-radius: 999px; }
 .eyebrow .ic { width: 16px; height: 16px; }
 .hero h1 { font-size: clamp(1.75rem, 7.4vw, 3.25rem); line-height: 1.1; letter-spacing: -.03em; margin: 14px 0 10px; font-weight: 800; text-wrap: balance; }
-.hero h1 span { color: #A8F0D2; }
+.hero h1 span { color: #A8F0D2; white-space: nowrap; }
 .lead { color: rgba(255, 255, 255, .88); font-size: 1.0625rem; max-width: 34em; }
 .hero-search {
   display: flex; align-items: center; gap: 8px; background: #fff; color: #0E1726; border-radius: 16px;
@@ -696,3 +696,14 @@ body.is-focus .toast { bottom: calc(96px + env(safe-area-inset-bottom)); }
 }
 .series-filter { margin-bottom: 6px; }
 .series-filter .chip { cursor: pointer; }
+
+/* ---------- language switch ---------- */
+.lang { display: flex; align-items: center; gap: 2px; margin-left: auto; padding: 3px; border-radius: 11px; background: var(--surface-2); border: 1px solid var(--line); flex: none; }
+.lang a { min-height: 34px; min-width: 40px; padding: 0 9px; display: grid; place-items: center; border-radius: 8px; font-size: .8125rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.lang a[aria-current] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(15, 23, 42, .14); }
+@media (min-width: 960px) { .lang { margin-left: 0; } }
+
+/* ---------- Korean ---------- */
+/* Break Korean lines at spaces (word units), the normal convention, instead of mid-word. */
+html:lang(ko) { word-break: keep-all; overflow-wrap: anywhere; }
+html:lang(ko) h1, html:lang(ko) h2 { letter-spacing: -.01em; }

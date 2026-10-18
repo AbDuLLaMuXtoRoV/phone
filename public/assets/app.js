@@ -1,5 +1,5 @@
 // Site-wide behaviour. Every page works without it; this only adds conveniences.
-import { $, $$, store, toast, money, digits, fold } from './ui.js';
+import { $, $$, L, store, toast, digits, fold } from './ui.js';
 
 const FAVS = 'fb_favs';
 const MINE = 'fb_mine';
@@ -11,9 +11,9 @@ function paintFavs() {
   for (const b of $$('[data-fav]')) {
     const on = set.has(+b.dataset.fav);
     b.setAttribute('aria-pressed', String(on));
-    b.setAttribute('aria-label', on ? 'Sevimlilardan olib tashlash' : 'Sevimlilarga qoʻshish');
+    b.setAttribute('aria-label', on ? L.t.unsave : L.t.save);
     const label = b.querySelector('[data-fav-label]');
-    if (label) label.textContent = on ? 'Sevimlilarda' : 'Sevimlilarga qoʻshish';
+    if (label) label.textContent = on ? L.t.saved : L.t.save;
   }
 }
 document.addEventListener('click', (e) => {
@@ -25,7 +25,7 @@ document.addEventListener('click', (e) => {
   const on = list.includes(id);
   store.set(FAVS, on ? list.filter((x) => x !== id) : [id, ...list].slice(0, 100));
   paintFavs();
-  toast(on ? 'Sevimlilardan olib tashlandi' : 'Sevimlilarga qoʻshildi');
+  toast(on ? L.t.savedRemoved : L.t.savedAdded);
   if (on && $('[data-fav-page="loaded"]')) b.closest('.card')?.remove();
 });
 paintFavs();
@@ -56,7 +56,7 @@ if (listing) {
       const b = e.target.closest('[data-status]');
       if (!b) return;
       const status = b.dataset.status;
-      if (status === 'deleted' && !confirm('Eʼlon butunlay oʻchirilsinmi?')) return;
+      if (status === 'deleted' && !confirm(L.t.confirmDelete)) return;
       b.disabled = true;
       try {
         const r = await fetch(`/api/listings/${id}/status`, {
@@ -65,10 +65,10 @@ if (listing) {
         if (!r.ok) throw new Error((await r.json()).error);
         if (status === 'deleted') {
           store.set(MINE, store.get(MINE, []).filter((x) => x.id !== id));
-          location.href = '/elonlarim';
+          location.href = '/my-listings';
         } else location.reload();
       } catch (err) {
-        toast(err.message || 'Xatolik yuz berdi');
+        toast(err.message || L.t.error);
         b.disabled = false;
       }
     });
@@ -77,7 +77,7 @@ if (listing) {
     const url = location.href.replace(/\?.*$/, '');
     try {
       if (navigator.share) await navigator.share({ title: document.title, url });
-      else { await navigator.clipboard.writeText(url); toast('Havola nusxalandi'); }
+      else { await navigator.clipboard.writeText(url); toast(L.t.linkCopied); }
     } catch { /* user cancelled */ }
   });
   const track = $('.gallery-track');
@@ -120,12 +120,12 @@ if (filters) {
 }
 $$('[data-autosubmit]').forEach((el) => el.addEventListener('change', () => el.form.requestSubmit()));
 
-// Money inputs: show "4 500 000" while typing; the server reads only the digits.
+// Money inputs: show "4,500,000" while typing; the server reads only the digits.
 document.addEventListener('input', (e) => {
   const el = e.target;
   if (!el.matches?.('[data-money]')) return;
   const d = digits(el.value).slice(0, 10);
-  el.value = d ? money(+d) : '';
+  el.value = d ? L.money(+d) : '';
 });
 
 // ---- client-side list filter (prices page) ----
@@ -151,7 +151,7 @@ for (const input of $$('[data-filter-input]')) {
   });
 }
 
-// Leave empty filters out of the URL so shared links stay short: /telefonlar?grade=a instead of ?q=&sort=new&…
+// Leave empty filters out of the URL so shared links stay short: /phones?grade=a instead of ?q=&sort=new&…
 $('#catalog-form')?.addEventListener('submit', (e) => {
   for (const el of e.target.elements) {
     if (!el.name) continue;
