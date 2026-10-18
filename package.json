@@ -1,0 +1,14 @@
+{
+  "name": "fonbozor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mobile-first marketplace for used iPhones in Uzbekistan, with instant price estimates in UZS.",
+  "type": "module",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch server.js",
+    "import-prices": "node scripts/import-prices.mjs",
+    "test": "node --disable-warning=ExperimentalWarning --test \"test/*.test.js\""
+  }
+}

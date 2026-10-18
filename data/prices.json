@@ -1,0 +1,2413 @@
+{
+ "source": "Apple_Used_Price_List_EN.xlsx",
+ "unitKRW": 10000,
+ "importedAt": "2026-10-18T18:03:31.931Z",
+ "models": [
+  {
+   "name": "iPhone SE 2",
+   "id": "iphone-se-2",
+   "storages": [
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": 11,
+     "A-": 10,
+     "B+": 9,
+     "B": "X",
+     "battA": null,
+     "battBp": null,
+     "base": 6
+    },
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 14,
+     "A-": 13,
+     "B+": 11,
+     "B": "X",
+     "battA": null,
+     "battBp": null,
+     "base": 6
+    }
+   ],
+   "deductions": {
+    "glass": 0,
+    "display": 3,
+    "displayMinor": null,
+    "biometric": 2,
+    "camera": 2,
+    "wifi": 1,
+    "mic": 0.5,
+    "backGlass": 0,
+    "trueTone": null,
+    "nonGenuine": null
+   },
+   "tiers": {
+    "values": [
+     4,
+     6,
+     8
+    ],
+    "batteryAsItem": true
+   },
+   "scrap": 1,
+   "notes": "*#06# - no IMEI shown: bought as scrap phone.\nActivation error after factory reset: bought as scrap phone.\nBadly bent frame, patched-together (assembled) unit, or missing parts: returned.\nOverseas version where SIM is not recognized: returned."
+  },
+  {
+   "name": "iPhone SE 3",
+   "id": "iphone-se-3",
+   "storages": [
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": 17,
+     "A-": 16,
+     "B+": 15,
+     "B": "X",
+     "battA": null,
+     "battBp": null,
+     "base": 9.5
+    },
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 20,
+     "A-": 19,
+     "B+": 18,
+     "B": "X",
+     "battA": null,
+     "battBp": null,
+     "base": 11.5
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 20,
+     "A-": 19,
+     "B+": 18,
+     "B": "X",
+     "battA": null,
+     "battBp": null,
+     "base": 11.5
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 4,
+    "displayMinor": null,
+    "biometric": 2,
+    "camera": 2,
+    "wifi": 1,
+    "mic": 0.5,
+    "backGlass": 0,
+    "trueTone": null,
+    "nonGenuine": null
+   },
+   "tiers": {
+    "values": [
+     4,
+     6,
+     8
+    ],
+    "batteryAsItem": true
+   },
+   "scrap": 1,
+   "notes": "*#06# - no IMEI shown: bought as scrap phone.\nActivation error after factory reset: bought as scrap phone.\nBadly bent frame, patched-together (assembled) unit, or missing parts: returned.\nOverseas version where SIM is not recognized: returned."
+  },
+  {
+   "name": "iPhone 6",
+   "id": "iphone-6",
+   "storages": [
+    {
+     "label": "16 GB",
+     "gb": 16,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 1
+    },
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 2
+    }
+   ],
+   "deductions": {
+    "glass": 0,
+    "display": 0.5,
+    "displayMinor": null,
+    "biometric": 1,
+    "camera": 0,
+    "wifi": 0,
+    "mic": 0,
+    "backGlass": 0,
+    "trueTone": 0,
+    "nonGenuine": null
+   },
+   "tiers": null,
+   "scrap": 0.5,
+   "notes": "iPhone grade criteria\nA = no scratches, no dents, no camera damage, no image retention (burn-in)\nA- = fine scratches, no dents, no camera damage, no image retention\nB+ = fine screen scratches, slight edge dents (1-2)\nB = light screen scratches, slight edge dents (2-3)\n\niPhone grade battery criteria\nA / A- grade = 90% or more\nB+ grade = 85% or more\nB grade = 81% or more"
+  },
+  {
+   "name": "iPhone 6 Plus",
+   "id": "iphone-6-plus",
+   "storages": [
+    {
+     "label": "16 GB",
+     "gb": 16,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 1.5
+    },
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 2.5
+    }
+   ],
+   "deductions": {
+    "glass": 0,
+    "display": 0.5,
+    "displayMinor": null,
+    "biometric": 1,
+    "camera": 0,
+    "wifi": 0,
+    "mic": 0,
+    "backGlass": 0,
+    "trueTone": 0,
+    "nonGenuine": null
+   },
+   "tiers": null,
+   "scrap": 0.5,
+   "notes": "iPhone grade criteria\nA = no scratches, no dents, no camera damage, no image retention (burn-in)\nA- = fine scratches, no dents, no camera damage, no image retention\nB+ = fine screen scratches, slight edge dents (1-2)\nB = light screen scratches, slight edge dents (2-3)\n\niPhone grade battery criteria\nA / A- grade = 90% or more\nB+ grade = 85% or more\nB grade = 81% or more"
+  },
+  {
+   "name": "iPhone 6s",
+   "id": "iphone-6s",
+   "storages": [
+    {
+     "label": "16 GB",
+     "gb": 16,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 1.5
+    },
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 2.5
+    }
+   ],
+   "deductions": {
+    "glass": 0,
+    "display": 1,
+    "displayMinor": null,
+    "biometric": 1,
+    "camera": 0,
+    "wifi": 0,
+    "mic": 0,
+    "backGlass": 0,
+    "trueTone": 0,
+    "nonGenuine": null
+   },
+   "tiers": null,
+   "scrap": 0.5,
+   "notes": "iPhone grade criteria\nA = no scratches, no dents, no camera damage, no image retention (burn-in)\nA- = fine scratches, no dents, no camera damage, no image retention\nB+ = fine screen scratches, slight edge dents (1-2)\nB = light screen scratches, slight edge dents (2-3)\n\niPhone grade battery criteria\nA / A- grade = 90% or more\nB+ grade = 85% or more\nB grade = 81% or more"
+  },
+  {
+   "name": "iPhone 6s Plus",
+   "id": "iphone-6s-plus",
+   "storages": [
+    {
+     "label": "16 GB",
+     "gb": 16,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 2
+    },
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 3
+    }
+   ],
+   "deductions": {
+    "glass": 0,
+    "display": 1,
+    "displayMinor": null,
+    "biometric": 1,
+    "camera": 0.5,
+    "wifi": 0,
+    "mic": 0,
+    "backGlass": 0,
+    "trueTone": 0,
+    "nonGenuine": null
+   },
+   "tiers": null,
+   "scrap": 0.5,
+   "notes": "iPhone grade criteria\nA = no scratches, no dents, no camera damage, no image retention (burn-in)\nA- = fine scratches, no dents, no camera damage, no image retention\nB+ = fine screen scratches, slight edge dents (1-2)\nB = light screen scratches, slight edge dents (2-3)\n\niPhone grade battery criteria\nA / A- grade = 90% or more\nB+ grade = 85% or more\nB grade = 81% or more"
+  },
+  {
+   "name": "iPhone 7",
+   "id": "iphone-7",
+   "storages": [
+    {
+     "label": "32 GB",
+     "gb": 32,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 4
+    },
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 5
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 2,
+    "displayMinor": null,
+    "biometric": 3,
+    "camera": 1,
+    "wifi": 0,
+    "mic": 0.5,
+    "backGlass": 0,
+    "trueTone": 0,
+    "nonGenuine": null
+   },
+   "tiers": null,
+   "scrap": 1,
+   "notes": "iPhone grade criteria\nA = no scratches, no dents, no camera damage, no image retention (burn-in)\nA- = fine scratches, no dents, no camera damage, no image retention\nB+ = fine screen scratches, slight edge dents (1-2)\nB = light screen scratches, slight edge dents (2-3)\n\niPhone grade battery criteria\nA / A- grade = 90% or more\nB+ grade = 85% or more\nB grade = 81% or more"
+  },
+  {
+   "name": "iPhone 7 Plus",
+   "id": "iphone-7-plus",
+   "storages": [
+    {
+     "label": "32 GB",
+     "gb": 32,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 5
+    },
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 7
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 2.5,
+    "displayMinor": null,
+    "biometric": 5,
+    "camera": 5,
+    "wifi": 0,
+    "mic": 0.5,
+    "backGlass": 0,
+    "trueTone": 0,
+    "nonGenuine": null
+   },
+   "tiers": null,
+   "scrap": 1,
+   "notes": "iPhone grade criteria\nA = no scratches, no dents, no camera damage, no image retention (burn-in)\nA- = fine scratches, no dents, no camera damage, no image retention\nB+ = fine screen scratches, slight edge dents (1-2)\nB = light screen scratches, slight edge dents (2-3)\n\niPhone grade battery criteria\nA / A- grade = 90% or more\nB+ grade = 85% or more\nB grade = 81% or more"
+  },
+  {
+   "name": "iPhone 8",
+   "id": "iphone-8",
+   "storages": [
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 6
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 8
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 2,
+    "displayMinor": null,
+    "biometric": 2,
+    "camera": 2,
+    "wifi": 1,
+    "mic": 0.5,
+    "backGlass": 0,
+    "trueTone": 0,
+    "nonGenuine": null
+   },
+   "tiers": null,
+   "scrap": 1.5,
+   "notes": "iPhone grade criteria\nA = no scratches, no dents, no camera damage, no image retention (burn-in)\nA- = fine scratches, no dents, no camera damage, no image retention\nB+ = fine screen scratches, slight edge dents (1-2)\nB = light screen scratches, slight edge dents (2-3)\n\niPhone grade battery criteria\nA / A- grade = 90% or more\nB+ grade = 85% or more\nB grade = 81% or more"
+  },
+  {
+   "name": "iPhone 8 Plus",
+   "id": "iphone-8-plus",
+   "storages": [
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 6.5
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 7.5
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 3,
+    "displayMinor": null,
+    "biometric": 2,
+    "camera": 2,
+    "wifi": 1,
+    "mic": 0.5,
+    "backGlass": 0,
+    "trueTone": 0,
+    "nonGenuine": null
+   },
+   "tiers": null,
+   "scrap": 1.5,
+   "notes": "iPhone grade criteria\nA = no scratches, no dents, no camera damage, no image retention (burn-in)\nA- = fine scratches, no dents, no camera damage, no image retention\nB+ = fine screen scratches, slight edge dents (1-2)\nB = light screen scratches, slight edge dents (2-3)\n\niPhone grade battery criteria\nA / A- grade = 90% or more\nB+ grade = 85% or more\nB grade = 81% or more"
+  },
+  {
+   "name": "iPhone X",
+   "id": "iphone-x",
+   "storages": [
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 7
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": null,
+     "A-": null,
+     "B+": null,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 8
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 4,
+    "displayMinor": 1,
+    "biometric": 2,
+    "camera": 2,
+    "wifi": 3,
+    "mic": 0.5,
+    "backGlass": 0,
+    "trueTone": 0,
+    "nonGenuine": null
+   },
+   "tiers": null,
+   "scrap": 1.5,
+   "notes": "iPhone grade criteria\nA = no scratches, no dents, no camera damage, no image retention (burn-in)\nA- = fine scratches, no dents, no camera damage, no image retention\nB+ = fine screen scratches, slight edge dents (1-2)\nB = light screen scratches, slight edge dents (2-3)\n\niPhone grade battery criteria\nA / A- grade = 90% or more\nB+ grade = 85% or more\nB grade = 81% or more"
+  },
+  {
+   "name": "iPhone XR",
+   "id": "iphone-xr",
+   "storages": [
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": 16,
+     "A-": 14,
+     "B+": 12,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 10
+    },
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 20,
+     "A-": 18,
+     "B+": 15,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 11
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 21,
+     "A-": 19,
+     "B+": 16,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 11
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 3,
+    "displayMinor": 1,
+    "biometric": 2,
+    "camera": 2,
+    "wifi": 3,
+    "mic": 0.5,
+    "backGlass": 0,
+    "trueTone": 0,
+    "nonGenuine": null
+   },
+   "tiers": null,
+   "scrap": 1.5,
+   "notes": "Third-party-part and genuine-part message deductions stack. (If both a third-party screen and a third-party battery message appear, the deduction is applied twice.)"
+  },
+  {
+   "name": "iPhone XS",
+   "id": "iphone-xs",
+   "storages": [
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": 18,
+     "A-": 16,
+     "B+": 14,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 8
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 21,
+     "A-": 19,
+     "B+": 17,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 9
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 22,
+     "A-": 20,
+     "B+": 18,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 9
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 4.5,
+    "displayMinor": 1,
+    "biometric": 2,
+    "camera": 2,
+    "wifi": 3,
+    "mic": 0.5,
+    "backGlass": 0,
+    "trueTone": 0,
+    "nonGenuine": null
+   },
+   "tiers": null,
+   "scrap": 1.5,
+   "notes": "Third-party-part and genuine-part message deductions stack. (If both a third-party screen and a third-party battery message appear, the deduction is applied twice.)"
+  },
+  {
+   "name": "iPhone XS Max",
+   "id": "iphone-xs-max",
+   "storages": [
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": 24,
+     "A-": 22,
+     "B+": 20,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 11
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 28,
+     "A-": 26,
+     "B+": 24,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 12
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 29,
+     "A-": 27,
+     "B+": 25,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 13
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 7,
+    "displayMinor": 1,
+    "biometric": 2,
+    "camera": 2,
+    "wifi": 3,
+    "mic": 0.5,
+    "backGlass": 0,
+    "trueTone": 0,
+    "nonGenuine": null
+   },
+   "tiers": null,
+   "scrap": 1.5,
+   "notes": "Third-party-part and genuine-part message deductions stack. (If both a third-party screen and a third-party battery message appear, the deduction is applied twice.)"
+  },
+  {
+   "name": "iPhone 11",
+   "id": "iphone-11",
+   "storages": [
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": 22,
+     "A-": 21,
+     "B+": 18,
+     "B": 16,
+     "battA": null,
+     "battBp": null,
+     "base": 14
+    },
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 25,
+     "A-": 24,
+     "B+": 21,
+     "B": 18,
+     "battA": null,
+     "battBp": null,
+     "base": 16
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 26,
+     "A-": 25,
+     "B+": 22,
+     "B": 18,
+     "battA": null,
+     "battBp": null,
+     "base": 16
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 3.5,
+    "displayMinor": 2,
+    "biometric": 2.5,
+    "camera": 3.5,
+    "wifi": 4,
+    "mic": 1,
+    "backGlass": 0,
+    "trueTone": 4.5,
+    "nonGenuine": 4.5
+   },
+   "tiers": {
+    "values": [
+     2,
+     4,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 2.5,
+   "notes": "Apple Pay defect = Wi-Fi deduction applies.\nHome button defect, or home button scratch/damage = fingerprint deduction."
+  },
+  {
+   "name": "iPhone 11 Pro",
+   "id": "iphone-11-pro",
+   "storages": [
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": 25,
+     "A-": 23,
+     "B+": 20,
+     "B": 19,
+     "battA": null,
+     "battBp": null,
+     "base": 17
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 27,
+     "A-": 25,
+     "B+": 22,
+     "B": 21,
+     "battA": null,
+     "battBp": null,
+     "base": 19
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 28,
+     "A-": 26,
+     "B+": 23,
+     "B": 22,
+     "battA": null,
+     "battBp": null,
+     "base": 19
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 5,
+    "displayMinor": 2,
+    "biometric": 2.5,
+    "camera": 3.5,
+    "wifi": 4,
+    "mic": 1,
+    "backGlass": 0,
+    "trueTone": 4.5,
+    "nonGenuine": 4.5
+   },
+   "tiers": {
+    "values": [
+     2,
+     4,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 2.5,
+   "notes": "Apple Pay defect = Wi-Fi deduction applies.\nHome button defect, or home button scratch/damage = fingerprint deduction."
+  },
+  {
+   "name": "iPhone 11 Pro Max",
+   "id": "iphone-11-pro-max",
+   "storages": [
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": 31,
+     "A-": 29,
+     "B+": 26,
+     "B": 23,
+     "battA": null,
+     "battBp": null,
+     "base": 20
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 33,
+     "A-": 31,
+     "B+": 28,
+     "B": 25,
+     "battA": null,
+     "battBp": null,
+     "base": 21
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 34,
+     "A-": 32,
+     "B+": 29,
+     "B": 26,
+     "battA": null,
+     "battBp": null,
+     "base": 21
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 8.5,
+    "displayMinor": 2,
+    "biometric": 2.5,
+    "camera": 3.5,
+    "wifi": 4,
+    "mic": 1,
+    "backGlass": 0,
+    "trueTone": 4.5,
+    "nonGenuine": 4.5
+   },
+   "tiers": {
+    "values": [
+     2,
+     4,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 2.5,
+   "notes": "Apple Pay defect = Wi-Fi deduction applies.\nHome button defect, or home button scratch/damage = fingerprint deduction."
+  },
+  {
+   "name": "iPhone 12 mini",
+   "id": "iphone-12-mini",
+   "storages": [
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": 19,
+     "A-": 17,
+     "B+": 15,
+     "B": 13,
+     "battA": null,
+     "battBp": null,
+     "base": 11
+    },
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 22,
+     "A-": 20,
+     "B+": 17,
+     "B": 15,
+     "battA": null,
+     "battBp": null,
+     "base": 13
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 23,
+     "A-": 21,
+     "B+": 18,
+     "B": 16,
+     "battA": null,
+     "battBp": null,
+     "base": 13
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 6.5,
+    "displayMinor": 2,
+    "biometric": 3,
+    "camera": 4.5,
+    "wifi": 5,
+    "mic": 2,
+    "backGlass": 0,
+    "trueTone": 7.5,
+    "nonGenuine": 7.5
+   },
+   "tiers": {
+    "values": [
+     2,
+     4,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 3,
+   "notes": "Cracked screen = LCD deduction. Battery parts = purchase not allowed for third-party message. Camera lens discoloration = grade X, -2 deduction."
+  },
+  {
+   "name": "iPhone 12",
+   "id": "iphone-12",
+   "storages": [
+    {
+     "label": "64 GB",
+     "gb": 64,
+     "A": 25,
+     "A-": 23,
+     "B+": 20,
+     "B": 18,
+     "battA": 20,
+     "battBp": 18,
+     "base": 17
+    },
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 29,
+     "A-": 27,
+     "B+": 24,
+     "B": 20,
+     "battA": 24,
+     "battBp": 22,
+     "base": 19
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 30,
+     "A-": 28,
+     "B+": 25,
+     "B": 20,
+     "battA": 24,
+     "battBp": 22,
+     "base": 19
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 8.5,
+    "displayMinor": 2,
+    "biometric": 3,
+    "camera": 4.5,
+    "wifi": 5,
+    "mic": 2,
+    "backGlass": 0,
+    "trueTone": 7.5,
+    "nonGenuine": 7.5
+   },
+   "tiers": {
+    "values": [
+     2,
+     4,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 3,
+   "notes": "Functional defect, back glass damage, parts message, large exterior dent: purchased after deductions. Screen-broken units are purchased after the screen-broken deduction."
+  },
+  {
+   "name": "iPhone 12 Pro",
+   "id": "iphone-12-pro",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 37,
+     "A-": 35,
+     "B+": 32,
+     "B": 27,
+     "battA": 32,
+     "battBp": 29,
+     "base": 24
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 40,
+     "A-": 38,
+     "B+": 35,
+     "B": 31,
+     "battA": 35,
+     "battBp": 32,
+     "base": 26
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 41,
+     "A-": 39,
+     "B+": 36,
+     "B": 31,
+     "battA": 34,
+     "battBp": 31,
+     "base": 26
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 9,
+    "displayMinor": 2,
+    "biometric": 3,
+    "camera": 4.5,
+    "wifi": 5,
+    "mic": 2,
+    "backGlass": 0,
+    "trueTone": 7.5,
+    "nonGenuine": 7.5
+   },
+   "tiers": {
+    "values": [
+     2,
+     4,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 3,
+   "notes": "Functional defect, back glass damage, parts message, large exterior dent: purchased after deductions. Screen-broken units are purchased after the screen-broken deduction."
+  },
+  {
+   "name": "iPhone 12 Pro Max",
+   "id": "iphone-12-pro-max",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 47,
+     "A-": 45,
+     "B+": 42,
+     "B": 35,
+     "battA": 42,
+     "battBp": 39,
+     "base": 28
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 51,
+     "A-": 49,
+     "B+": 46,
+     "B": 39,
+     "battA": 46,
+     "battBp": 43,
+     "base": 31
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 53,
+     "A-": 51,
+     "B+": 48,
+     "B": 40,
+     "battA": 47,
+     "battBp": 44,
+     "base": 32
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 15,
+    "displayMinor": 2,
+    "biometric": 3,
+    "camera": 4.5,
+    "wifi": 5,
+    "mic": 2,
+    "backGlass": 0,
+    "trueTone": 7.5,
+    "nonGenuine": 7.5
+   },
+   "tiers": {
+    "values": [
+     2,
+     4,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 3,
+   "notes": "Functional defect, back glass damage, parts message, large exterior dent: purchased after deductions. Screen-broken units are purchased after the screen-broken deduction."
+  },
+  {
+   "name": "iPhone 13 mini",
+   "id": "iphone-13-mini",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 28,
+     "A-": 26,
+     "B+": 23,
+     "B": "X",
+     "battA": null,
+     "battBp": null,
+     "base": 21
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 33,
+     "A-": 32,
+     "B+": 29,
+     "B": "X",
+     "battA": null,
+     "battBp": null,
+     "base": 25
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 35,
+     "A-": 33,
+     "B+": 30,
+     "B": "X",
+     "battA": null,
+     "battBp": null,
+     "base": 25
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 11,
+    "displayMinor": 2,
+    "biometric": 5.5,
+    "camera": 5,
+    "wifi": 5,
+    "mic": 2,
+    "backGlass": 0,
+    "trueTone": 8.5,
+    "nonGenuine": 8.5
+   },
+   "tiers": {
+    "values": [
+     3,
+     5,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 3.5,
+   "notes": "Overseas version / demo unit = grade -3 deduction.\neSIM overseas version = grade X, -10 deduction."
+  },
+  {
+   "name": "iPhone 13",
+   "id": "iphone-13",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 35,
+     "A-": 33,
+     "B+": 31,
+     "B": 28,
+     "battA": 30,
+     "battBp": 28,
+     "base": 27
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 41,
+     "A-": 39,
+     "B+": 37,
+     "B": 33,
+     "battA": 36,
+     "battBp": 34,
+     "base": 29
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 42,
+     "A-": 40,
+     "B+": 38,
+     "B": 34,
+     "battA": 37,
+     "battBp": 35,
+     "base": 30
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 9,
+    "displayMinor": 2,
+    "biometric": 5.5,
+    "camera": 5,
+    "wifi": 5,
+    "mic": 2,
+    "backGlass": 0,
+    "trueTone": 8.5,
+    "nonGenuine": 8.5
+   },
+   "tiers": {
+    "values": [
+     3,
+     5,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 3.5,
+   "notes": null
+  },
+  {
+   "name": "iPhone 13 Pro",
+   "id": "iphone-13-pro",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 45,
+     "A-": 42,
+     "B+": 40,
+     "B": 37,
+     "battA": 39,
+     "battBp": 37,
+     "base": 35
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 51,
+     "A-": 48,
+     "B+": 46,
+     "B": 42,
+     "battA": 45,
+     "battBp": 42,
+     "base": 38
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 52,
+     "A-": 49,
+     "B+": 47,
+     "B": 43,
+     "battA": 46,
+     "battBp": 43,
+     "base": 39
+    },
+    {
+     "label": "1 TB",
+     "gb": 1024,
+     "A": 53,
+     "A-": 50,
+     "B+": 48,
+     "B": 43,
+     "battA": 47,
+     "battBp": 44,
+     "base": 39
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 15.5,
+    "displayMinor": 2,
+    "biometric": 5.5,
+    "camera": 5,
+    "wifi": 5,
+    "mic": 2,
+    "backGlass": 0,
+    "trueTone": 8.5,
+    "nonGenuine": 8.5
+   },
+   "tiers": {
+    "values": [
+     3,
+     5,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 3.5,
+   "notes": "iPhone 16 series and above: camera button defect or crack = -2 deduction."
+  },
+  {
+   "name": "iPhone 13 Pro Max",
+   "id": "iphone-13-pro-max",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 59,
+     "A-": 56,
+     "B+": 53,
+     "B": 47,
+     "battA": 52,
+     "battBp": 48,
+     "base": 42
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 64,
+     "A-": 61,
+     "B+": 58,
+     "B": 52,
+     "battA": 57,
+     "battBp": 53,
+     "base": 46.5
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 66,
+     "A-": 63,
+     "B+": 60,
+     "B": 53,
+     "battA": 59,
+     "battBp": 55,
+     "base": 47.5
+    },
+    {
+     "label": "1 TB",
+     "gb": 1024,
+     "A": 67,
+     "A-": 64,
+     "B+": 61,
+     "B": 54,
+     "battA": 60,
+     "battBp": 56,
+     "base": 47.5
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 24,
+    "displayMinor": 2,
+    "biometric": 5.5,
+    "camera": 5,
+    "wifi": 5,
+    "mic": 2,
+    "backGlass": 0,
+    "trueTone": 8.5,
+    "nonGenuine": 8.5
+   },
+   "tiers": {
+    "values": [
+     3,
+     5,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 3.5,
+   "notes": "No vibration / does not charge / buttons not working / no sound: -2 (-20,000 KRW) deduction each."
+  },
+  {
+   "name": "iPhone 14",
+   "id": "iphone-14",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 40,
+     "A-": 37,
+     "B+": 34,
+     "B": "X",
+     "battA": 34,
+     "battBp": 32,
+     "base": 31
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 45,
+     "A-": 42,
+     "B+": 39,
+     "B": "X",
+     "battA": 39,
+     "battBp": 37,
+     "base": 35
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 48,
+     "A-": 45,
+     "B+": 42,
+     "B": "X",
+     "battA": 42,
+     "battBp": 39,
+     "base": 36
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 14,
+    "displayMinor": 2,
+    "biometric": 7,
+    "camera": 6.5,
+    "wifi": 6,
+    "mic": 3,
+    "backGlass": 0,
+    "trueTone": 10,
+    "nonGenuine": 10
+   },
+   "tiers": {
+    "values": [
+     3,
+     5,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 5,
+   "notes": "Severely damaged screen: bought at the LCD deduction price or at half the LCD price."
+  },
+  {
+   "name": "iPhone 14 Plus",
+   "id": "iphone-14-plus",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 45,
+     "A-": 42,
+     "B+": 39,
+     "B": "X",
+     "battA": 39,
+     "battBp": 37,
+     "base": 36
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 52,
+     "A-": 49,
+     "B+": 46,
+     "B": "X",
+     "battA": 46,
+     "battBp": 44,
+     "base": 42
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 53,
+     "A-": 50,
+     "B+": 47,
+     "B": "X",
+     "battA": 47,
+     "battBp": 45,
+     "base": 43
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 16,
+    "displayMinor": 2,
+    "biometric": 7,
+    "camera": 6.5,
+    "wifi": 6,
+    "mic": 3,
+    "backGlass": 0,
+    "trueTone": 10,
+    "nonGenuine": 10
+   },
+   "tiers": {
+    "values": [
+     3,
+     5,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 5,
+   "notes": "Body damage / bulging body: -3 to -15 deduction; if too severe, not purchased."
+  },
+  {
+   "name": "iPhone 14 Pro",
+   "id": "iphone-14-pro",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 61,
+     "A-": 58,
+     "B+": 54,
+     "B": 50,
+     "battA": 53,
+     "battBp": 50,
+     "base": 47
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 67,
+     "A-": 64,
+     "B+": 60,
+     "B": 55,
+     "battA": 59,
+     "battBp": 55,
+     "base": 51
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 70,
+     "A-": 67,
+     "B+": 63,
+     "B": 56,
+     "battA": 62,
+     "battBp": 56,
+     "base": 53
+    },
+    {
+     "label": "1 TB",
+     "gb": 1024,
+     "A": 71,
+     "A-": 68,
+     "B+": 64,
+     "B": 57,
+     "battA": 63,
+     "battBp": 57,
+     "base": 54
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 22,
+    "displayMinor": 2,
+    "biometric": 7,
+    "camera": 6.5,
+    "wifi": 6,
+    "mic": 3,
+    "backGlass": 0,
+    "trueTone": 10,
+    "nonGenuine": 10
+   },
+   "tiers": {
+    "values": [
+     3,
+     5,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 5,
+   "notes": null
+  },
+  {
+   "name": "iPhone 14 Pro Max",
+   "id": "iphone-14-pro-max",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 77,
+     "A-": 74,
+     "B+": 70,
+     "B": 65,
+     "battA": 69,
+     "battBp": 65,
+     "base": 57
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 84,
+     "A-": 81,
+     "B+": 77,
+     "B": 70,
+     "battA": 76,
+     "battBp": 70,
+     "base": 62.5
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 87,
+     "A-": 84,
+     "B+": 80,
+     "B": 71,
+     "battA": 79,
+     "battBp": 71,
+     "base": 64.5
+    },
+    {
+     "label": "1 TB",
+     "gb": 1024,
+     "A": 88,
+     "A-": 85,
+     "B+": 81,
+     "B": 72,
+     "battA": 80,
+     "battBp": 72,
+     "base": 65.5
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 28,
+    "displayMinor": 2,
+    "biometric": 7,
+    "camera": 6.5,
+    "wifi": 6,
+    "mic": 3,
+    "backGlass": 0,
+    "trueTone": 10,
+    "nonGenuine": 10
+   },
+   "tiers": {
+    "values": [
+     3,
+     5,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 5,
+   "notes": null
+  },
+  {
+   "name": "iPhone 15",
+   "id": "iphone-15",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 58,
+     "A-": 55,
+     "B+": 52,
+     "B": "X",
+     "battA": 52,
+     "battBp": 50,
+     "base": 47
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 66,
+     "A-": 63,
+     "B+": 60,
+     "B": "X",
+     "battA": 60,
+     "battBp": 57,
+     "base": 51
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 71,
+     "A-": 68,
+     "B+": 65,
+     "B": "X",
+     "battA": 63,
+     "battBp": 60,
+     "base": 52
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 17.5,
+    "displayMinor": 2,
+    "biometric": 11,
+    "camera": 11,
+    "wifi": 12,
+    "mic": 5,
+    "backGlass": 0,
+    "trueTone": 11,
+    "nonGenuine": 11
+   },
+   "tiers": {
+    "values": [
+     5,
+     7,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 5,
+   "notes": null
+  },
+  {
+   "name": "iPhone 15 Plus",
+   "id": "iphone-15-plus",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 60,
+     "A-": 57,
+     "B+": 54,
+     "B": "X",
+     "battA": 54,
+     "battBp": 52,
+     "base": 50
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 70,
+     "A-": 67,
+     "B+": 64,
+     "B": "X",
+     "battA": 64,
+     "battBp": 61,
+     "base": 55
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 73,
+     "A-": 70,
+     "B+": 67,
+     "B": "X",
+     "battA": 67,
+     "battBp": 63,
+     "base": 56
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 19.5,
+    "displayMinor": 2,
+    "biometric": 11,
+    "camera": 11,
+    "wifi": 12,
+    "mic": 5,
+    "backGlass": 0,
+    "trueTone": 11,
+    "nonGenuine": 11
+   },
+   "tiers": {
+    "values": [
+     5,
+     7,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 5,
+   "notes": null
+  },
+  {
+   "name": "iPhone 15 Pro",
+   "id": "iphone-15-pro",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 80,
+     "A-": 78,
+     "B+": 72,
+     "B": "X",
+     "battA": 72,
+     "battBp": 66,
+     "base": 63
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 89,
+     "A-": 87,
+     "B+": 80,
+     "B": "X",
+     "battA": 80,
+     "battBp": 73,
+     "base": 68
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 92,
+     "A-": 90,
+     "B+": 84,
+     "B": "X",
+     "battA": 84,
+     "battBp": 75,
+     "base": 70
+    },
+    {
+     "label": "1 TB",
+     "gb": 1024,
+     "A": 93,
+     "A-": 91,
+     "B+": 85,
+     "B": "X",
+     "battA": 85,
+     "battBp": 76,
+     "base": 71
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 26,
+    "displayMinor": 2,
+    "biometric": 11,
+    "camera": 11,
+    "wifi": 12,
+    "mic": 5,
+    "backGlass": 0,
+    "trueTone": 11,
+    "nonGenuine": 11
+   },
+   "tiers": {
+    "values": [
+     5,
+     7,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 5,
+   "notes": null
+  },
+  {
+   "name": "iPhone 15 Pro Max",
+   "id": "iphone-15-pro-max",
+   "storages": [
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 99,
+     "A-": 96,
+     "B+": 90,
+     "B": "X",
+     "battA": 90,
+     "battBp": 86,
+     "base": 81.5
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 105,
+     "A-": 102,
+     "B+": 96,
+     "B": "X",
+     "battA": 96,
+     "battBp": 92,
+     "base": 88
+    },
+    {
+     "label": "1 TB",
+     "gb": 1024,
+     "A": 110,
+     "A-": 107,
+     "B+": 101,
+     "B": "X",
+     "battA": 101,
+     "battBp": 97,
+     "base": 88
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 34,
+    "displayMinor": 2,
+    "biometric": 11,
+    "camera": 11,
+    "wifi": 12,
+    "mic": 5,
+    "backGlass": 0,
+    "trueTone": 11,
+    "nonGenuine": 11
+   },
+   "tiers": {
+    "values": [
+     5,
+     7,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 5,
+   "notes": null
+  },
+  {
+   "name": "iPhone 16",
+   "id": "iphone-16",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 76,
+     "A-": 73,
+     "B+": 70,
+     "B": null,
+     "battA": 69,
+     "battBp": 66,
+     "base": 59.5
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 86,
+     "A-": 83,
+     "B+": 80,
+     "B": null,
+     "battA": 79,
+     "battBp": 75,
+     "base": 67.5
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 96,
+     "A-": 93,
+     "B+": 90,
+     "B": null,
+     "battA": 89,
+     "battBp": 85,
+     "base": 69.5
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 23,
+    "displayMinor": null,
+    "biometric": 15,
+    "camera": 15,
+    "wifi": 15,
+    "mic": 10,
+    "backGlass": 2,
+    "trueTone": 25,
+    "nonGenuine": 25
+   },
+   "tiers": {
+    "values": [
+     10,
+     15,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 5,
+   "notes": null
+  },
+  {
+   "name": "iPhone 16 Plus",
+   "id": "iphone-16-plus",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 85,
+     "A-": 82,
+     "B+": 79,
+     "B": null,
+     "battA": 77,
+     "battBp": 74,
+     "base": 62
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 95,
+     "A-": 92,
+     "B+": 89,
+     "B": null,
+     "battA": 87,
+     "battBp": 84,
+     "base": 70
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 105,
+     "A-": 102,
+     "B+": 99,
+     "B": null,
+     "battA": 97,
+     "battBp": 94,
+     "base": 72
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 26,
+    "displayMinor": null,
+    "biometric": 15,
+    "camera": 15,
+    "wifi": 15,
+    "mic": 10,
+    "backGlass": 2,
+    "trueTone": 25,
+    "nonGenuine": 25
+   },
+   "tiers": {
+    "values": [
+     10,
+     15,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 5,
+   "notes": null
+  },
+  {
+   "name": "iPhone 16 Pro",
+   "id": "iphone-16-pro",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 96,
+     "A-": 94,
+     "B+": 90,
+     "B": null,
+     "battA": 89,
+     "battBp": 85,
+     "base": 78
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 105,
+     "A-": 103,
+     "B+": 100,
+     "B": null,
+     "battA": 98,
+     "battBp": 95,
+     "base": 86
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 114,
+     "A-": 112,
+     "B+": 109,
+     "B": null,
+     "battA": 107,
+     "battBp": 104,
+     "base": 90
+    },
+    {
+     "label": "1 TB",
+     "gb": 1024,
+     "A": 116,
+     "A-": 114,
+     "B+": 110,
+     "B": null,
+     "battA": 109,
+     "battBp": 105,
+     "base": 92
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 30,
+    "displayMinor": null,
+    "biometric": 15,
+    "camera": 15,
+    "wifi": 15,
+    "mic": 10,
+    "backGlass": 2,
+    "trueTone": 25,
+    "nonGenuine": 25
+   },
+   "tiers": {
+    "values": [
+     10,
+     15,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 5,
+   "notes": null
+  },
+  {
+   "name": "iPhone 16 Pro Max",
+   "id": "iphone-16-pro-max",
+   "storages": [
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 124,
+     "A-": 122,
+     "B+": 118,
+     "B": null,
+     "battA": 117,
+     "battBp": 113,
+     "base": 101
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 137,
+     "A-": 135,
+     "B+": 131,
+     "B": null,
+     "battA": 130,
+     "battBp": 126,
+     "base": 109
+    },
+    {
+     "label": "1 TB",
+     "gb": 1024,
+     "A": 152,
+     "A-": 150,
+     "B+": 146,
+     "B": null,
+     "battA": 145,
+     "battBp": 141,
+     "base": 112
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 38,
+    "displayMinor": null,
+    "biometric": 15,
+    "camera": 15,
+    "wifi": 15,
+    "mic": 10,
+    "backGlass": 2,
+    "trueTone": 25,
+    "nonGenuine": 25
+   },
+   "tiers": {
+    "values": [
+     10,
+     15,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 5,
+   "notes": null
+  },
+  {
+   "name": "iPhone 16e",
+   "id": "iphone-16e",
+   "storages": [
+    {
+     "label": "128 GB",
+     "gb": 128,
+     "A": 52,
+     "A-": 49,
+     "B+": 46,
+     "B": 39,
+     "battA": null,
+     "battBp": null,
+     "base": 34
+    },
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 62,
+     "A-": 59,
+     "B+": 56,
+     "B": 48,
+     "battA": null,
+     "battBp": null,
+     "base": 39
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 72,
+     "A-": 69,
+     "B+": 66,
+     "B": 58,
+     "battA": null,
+     "battBp": null,
+     "base": 41
+    }
+   ],
+   "deductions": {
+    "glass": 1,
+    "display": 19,
+    "displayMinor": null,
+    "biometric": 15,
+    "camera": 15,
+    "wifi": 15,
+    "mic": 10,
+    "backGlass": 2,
+    "trueTone": 25,
+    "nonGenuine": 25
+   },
+   "tiers": {
+    "values": [
+     10,
+     15,
+     "nonGenuine"
+    ]
+   },
+   "scrap": 5,
+   "notes": null
+  },
+  {
+   "name": "iPhone 17",
+   "id": "iphone-17",
+   "storages": [
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 100,
+     "A-": 98,
+     "B+": 96,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 77
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 110,
+     "A-": 108,
+     "B+": 105,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 87
+    }
+   ],
+   "deductions": {
+    "glass": 5,
+    "display": 40,
+    "displayMinor": null,
+    "biometric": 20,
+    "camera": 20,
+    "wifi": 20,
+    "mic": 20,
+    "backGlass": 5,
+    "trueTone": 30,
+    "nonGenuine": 30
+   },
+   "tiers": {
+    "values": [
+     20,
+     25,
+     "nonGenuine"
+    ]
+   },
+   "scrap": null,
+   "notes": null
+  },
+  {
+   "name": "iPhone Air",
+   "id": "iphone-air",
+   "storages": [
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 99,
+     "A-": 97,
+     "B+": 94,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 70
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 108,
+     "A-": 106,
+     "B+": 102,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 80
+    },
+    {
+     "label": "1 TB",
+     "gb": 1024,
+     "A": 117,
+     "A-": 115,
+     "B+": 111,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 85
+    }
+   ],
+   "deductions": {
+    "glass": 5,
+    "display": 40,
+    "displayMinor": null,
+    "biometric": 20,
+    "camera": 20,
+    "wifi": 20,
+    "mic": 20,
+    "backGlass": 5,
+    "trueTone": 30,
+    "nonGenuine": 30
+   },
+   "tiers": {
+    "values": [
+     20,
+     25,
+     "nonGenuine"
+    ]
+   },
+   "scrap": null,
+   "notes": null
+  },
+  {
+   "name": "iPhone 17 Pro",
+   "id": "iphone-17-pro",
+   "storages": [
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 151,
+     "A-": 149,
+     "B+": 145,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 107
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 164,
+     "A-": 162,
+     "B+": 158,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 117
+    },
+    {
+     "label": "1 TB",
+     "gb": 1024,
+     "A": 177,
+     "A-": 175,
+     "B+": 171,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 127
+    }
+   ],
+   "deductions": {
+    "glass": 5,
+    "display": 50,
+    "displayMinor": null,
+    "biometric": 20,
+    "camera": 20,
+    "wifi": 20,
+    "mic": 20,
+    "backGlass": 5,
+    "trueTone": 30,
+    "nonGenuine": 30
+   },
+   "tiers": {
+    "values": [
+     20,
+     25,
+     "nonGenuine"
+    ]
+   },
+   "scrap": null,
+   "notes": null
+  },
+  {
+   "name": "iPhone 17 Pro Max",
+   "id": "iphone-17-pro-max",
+   "storages": [
+    {
+     "label": "256 GB",
+     "gb": 256,
+     "A": 179,
+     "A-": 176,
+     "B+": 172,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 147
+    },
+    {
+     "label": "512 GB",
+     "gb": 512,
+     "A": 194,
+     "A-": 191,
+     "B+": 188,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 152
+    },
+    {
+     "label": "1 TB",
+     "gb": 1024,
+     "A": 210,
+     "A-": 207,
+     "B+": 205,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 157
+    },
+    {
+     "label": "2 TB",
+     "gb": 2048,
+     "A": 211,
+     "A-": 208,
+     "B+": 206,
+     "B": null,
+     "battA": null,
+     "battBp": null,
+     "base": 157
+    }
+   ],
+   "deductions": {
+    "glass": 5,
+    "display": 50,
+    "displayMinor": null,
+    "biometric": 20,
+    "camera": 20,
+    "wifi": 20,
+    "mic": 20,
+    "backGlass": 5,
+    "trueTone": 30,
+    "nonGenuine": 30
+   },
+   "tiers": {
+    "values": [
+     20,
+     25,
+     "nonGenuine"
+    ]
+   },
+   "scrap": null,
+   "notes": null
+  }
+ ]
+}

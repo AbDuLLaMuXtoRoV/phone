@@ -1,0 +1,10 @@
+{
+  "name": "Fonbozor — iPhone sotish va sotib olish",
+  "short_name": "Fonbozor",
+  "lang": "uz",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0B7A5C",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
