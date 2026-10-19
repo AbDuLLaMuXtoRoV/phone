@@ -17,16 +17,16 @@ db.exec(`
     grade       TEXT NOT NULL,
     battery     INTEGER NOT NULL,
     answers     TEXT NOT NULL,
-    est_uzs     INTEGER NOT NULL,
-    price_uzs   INTEGER NOT NULL,
+    est_krw     INTEGER NOT NULL,
+    price_krw   INTEGER NOT NULL,
     region      TEXT NOT NULL,
     seller_name TEXT NOT NULL,
     phone       TEXT NOT NULL,
-    telegram    TEXT,
+    telegram    TEXT,       -- unused: Telegram username, asked until October 2026 (KakaoTalk since)
     description TEXT,
     photos      TEXT NOT NULL DEFAULT '[]',
     extras      TEXT NOT NULL DEFAULT '{}',
-    uzimei      TEXT,
+    uzimei      TEXT,       -- unused: Uzbek IMEI registration, asked until October 2026
     status      TEXT NOT NULL DEFAULT 'active',
     token_hash  TEXT NOT NULL,
     views       INTEGER NOT NULL DEFAULT 0,
@@ -40,6 +40,16 @@ if (!db.prepare('PRAGMA table_info(listings)').all().some((c) => c.name === 'cat
   db.exec("ALTER TABLE listings ADD COLUMN category TEXT NOT NULL DEFAULT 'iphone'");
 }
 db.exec('CREATE INDEX IF NOT EXISTS listings_category ON listings(category, status)');
+// KakaoTalk ID or open chat link, added when the site moved from Uzbekistan to Korea.
+if (!db.prepare('PRAGMA table_info(listings)').all().some((c) => c.name === 'kakao')) db.exec('ALTER TABLE listings ADD COLUMN kakao TEXT');
+// Prices were stored in Uzbek som (8.5 som per won) until October 2026; they are in won now.
+if (db.prepare('PRAGMA table_info(listings)').all().some((c) => c.name === 'price_uzs')) {
+  db.exec(`BEGIN;
+    ALTER TABLE listings RENAME COLUMN est_uzs TO est_krw;
+    ALTER TABLE listings RENAME COLUMN price_uzs TO price_krw;
+    UPDATE listings SET est_krw = CAST(ROUND(est_krw / 8.5) AS INTEGER), price_krw = CAST(ROUND(price_krw / 8.5 / 1000) * 1000 AS INTEGER);
+    COMMIT;`);
+}
 
 const hydrate = (r) => r && ({
   ...r,
@@ -50,13 +60,13 @@ const hydrate = (r) => r && ({
 
 export function insertListing(l) {
   const res = db.prepare(`
-    INSERT INTO listings (category, model_id, model_name, series, storage, color, grade, battery, answers, est_uzs, price_uzs,
-      region, seller_name, phone, telegram, description, photos, extras, uzimei, token_hash, views, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO listings (category, model_id, model_name, series, storage, color, grade, battery, answers, est_krw, price_krw,
+      region, seller_name, phone, kakao, description, photos, extras, token_hash, views, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     l.category, l.model_id, l.model_name, l.series, l.storage, l.color ?? null, l.grade, l.battery, JSON.stringify(l.answers),
-    l.est_uzs, l.price_uzs, l.region, l.seller_name, l.phone, l.telegram ?? null, l.description ?? null,
-    JSON.stringify(l.photos || []), JSON.stringify(l.extras || {}), l.uzimei ?? null, l.token_hash, l.views || 0,
+    l.est_krw, l.price_krw, l.region, l.seller_name, l.phone, l.kakao ?? null, l.description ?? null,
+    JSON.stringify(l.photos || []), JSON.stringify(l.extras || {}), l.token_hash, l.views || 0,
     l.created_at || Date.now(),
   );
   return Number(res.lastInsertRowid);
@@ -90,8 +100,8 @@ export function similar(modelId, series, excludeId, limit = 4) {
 const GRADE_GROUPS = { a: ['A', 'A-'], b: ['B+', 'B'], c: ['C'] };
 const SORTS = {
   new: 'created_at DESC',
-  cheap: 'price_uzs ASC',
-  expensive: 'price_uzs DESC',
+  cheap: 'price_krw ASC',
+  expensive: 'price_krw DESC',
   battery: 'battery DESC, created_at DESC',
 };
 
@@ -101,8 +111,8 @@ export function search(f, { limit = 24 } = {}) {
   if (f.q) {
     // Every word must appear in the model name ("13 pro" matches "iPhone 13 Pro" and "iPhone 13 Pro Max").
     for (const w of f.q.toLowerCase().replace(/iphone|айфон|ayfon/g, ' ').split(/\s+/).filter(Boolean).slice(0, 5)) {
-      where.push("(' ' || lower(model_name) || ' ') LIKE ?");
-      args.push(`% ${w}%`);
+      where.push("(' ' || lower(model_name) || ' ') LIKE ? ESCAPE '\\'");
+      args.push(`% ${w.replace(/[\\%_]/g, '\\$&')}%`); // a typed % or _ is literal, not a wildcard
     }
   }
   if (f.cat) { where.push('category = ?'); args.push(f.cat); }
@@ -114,15 +124,17 @@ export function search(f, { limit = 24 } = {}) {
     where.push(`grade IN (${GRADE_GROUPS[f.grade].map(() => '?').join(',')})`);
     args.push(...GRADE_GROUPS[f.grade]);
   }
-  if (f.min) { where.push('price_uzs >= ?'); args.push(f.min); }
-  if (f.max) { where.push('price_uzs <= ?'); args.push(f.max); }
+  if (f.min) { where.push('price_krw >= ?'); args.push(f.min); }
+  if (f.max) { where.push('price_krw <= ?'); args.push(f.max); }
   if (f.bat) { where.push('battery >= ?'); args.push(f.bat); }
   const w = where.join(' AND ');
   const total = db.prepare(`SELECT COUNT(*) AS n FROM listings WHERE ${w}`).get(...args).n;
-  const page = Math.max(1, f.page || 1);
+  const pages = Math.max(1, Math.ceil(total / limit));
+  // A page past the end shows the last one; an absurd ?page= would also overflow SQLite's integer OFFSET.
+  const page = Math.min(Math.max(1, f.page || 1), pages);
   const items = db.prepare(`SELECT * FROM listings WHERE ${w} ORDER BY ${SORTS[f.sort] || SORTS.new} LIMIT ? OFFSET ?`)
     .all(...args, limit, (page - 1) * limit).map(hydrate);
-  return { items, total, page, pages: Math.max(1, Math.ceil(total / limit)) };
+  return { items, total, page, pages };
 }
 
 export default db;

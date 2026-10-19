@@ -10,9 +10,10 @@ import { ROOT } from './src/paths.js';
 import { byId, MODELS, SERIES, catOfSeries } from './src/catalog.js';
 import * as db from './src/db.js';
 import { seed } from './src/seed.js';
-import { LANGS, pickLang, langCookie } from './src/i18n.js';
+import { LANGS, pickLang, pickCurrency, langCookie, curCookie } from './src/i18n.js';
 import { estimate, conditionGrade } from './public/assets/pricing.js';
-import { BASIC, LOOKS, SCREEN, MORE, PARTS, UZIMEI, REGIONS } from './public/assets/questions.js';
+import { CURRENCIES, moneyPack, toKrw } from './public/assets/money.js';
+import { BASIC, LOOKS, SCREEN, MORE, PARTS, REGIONS, koreanMobile, kakaoContact } from './public/assets/questions.js';
 import { CATEGORY_KEYS, CATEGORIES, applies, faultsFor, extrasFor, batteryMode, hasParts } from './public/assets/categories.js';
 import { homePage } from './src/views/home.js';
 import { catalogPage } from './src/views/catalog.js';
@@ -23,7 +24,8 @@ import { pricesPage, favoritesPage, minePage, notFoundPage } from './src/views/m
 const PUBLIC = join(ROOT, 'public');
 const UPLOADS = join(ROOT, 'uploads');
 await mkdir(UPLOADS, { recursive: true });
-seed();
+// Made-up demo listings only when asked for (DEMO_DATA=1); the real site starts empty.
+if (config.demoData) seed();
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
@@ -63,7 +65,9 @@ const sendJson = (req, res, obj, status = 200) => send(req, res, status, JSON.st
 const redirect = (res, to, status = 302) => { res.writeHead(status, { Location: to }); res.end(); };
 
 async function serveFile(req, res, baseDir, relPath, cacheControl) {
-  const file = normPath(join(baseDir, decodeURIComponent(relPath)));
+  let rel;
+  try { rel = decodeURIComponent(relPath); } catch { throw new HttpError(404, 'notFound'); } // malformed %-escape
+  const file = normPath(join(baseDir, rel));
   if (!file.startsWith(baseDir + sep)) throw new HttpError(404, 'notFound');
   let data;
   try {
@@ -81,7 +85,11 @@ async function readJson(req, limit = 25 * 1024 * 1024) {
     if (size > limit) throw new HttpError(413, 'tooLarge');
     chunks.push(c);
   }
-  try { return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'); } catch { throw new HttpError(400, 'badRequest'); }
+  let body;
+  try { body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'); } catch { throw new HttpError(400, 'badRequest'); }
+  // Every endpoint expects an object; `null`, arrays and bare values would crash the handlers.
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'badRequest');
+  return body;
 }
 
 // ---- validation -------------------------------------------------------------------------------
@@ -103,7 +111,6 @@ function sanitizeAnswers(input, model) {
     lens: c.looks.includes('lens') ? oneOf(LOOKS.lens, a.lens) : 'ok',
     bent: c.looks.includes('bent') ? oneOf(LOOKS.bent, a.bent) : 'none',
     backGlass: applies('backGlass', model) ? oneOf(LOOKS.backGlass, a.backGlass) : 'ok',
-    sim: model.esimQ ? oneOf(BASIC.sim, a.sim) : 'sim',
   };
   if (applies('inner', model)) out.inner = oneOf(LOOKS.inner, a.inner);
   if (c.config.includes('connectivity')) out.connectivity = oneOf(model.connectivity || [], a.connectivity);
@@ -145,14 +152,22 @@ function clientIp(req) {
 }
 
 // Simple abuse guard: at most 10 published listings per hour per IP. Failed attempts are not counted,
-// so someone fixing a validation error is never locked out.
-const createHits = new Map(); // ip -> timestamps of successful creates
-function checkRate(ip) {
-  const hits = (createHits.get(ip) || []).filter((t) => Date.now() - t < 3600e3);
-  createHits.set(ip, hits);
+// so someone fixing a validation error is never locked out. The slot is taken before the upload is read,
+// so parallel requests can't all slip past the limit, and given back if the listing is not created.
+const createHits = new Map(); // ip -> timestamps of creates (oldest first)
+function takeSlot(ip) {
+  const now = Date.now();
+  const hits = createHits.get(ip) || [];
+  while (hits.length && now - hits[0] >= 3600e3) hits.shift();
   if (hits.length >= 10) throw new HttpError(429, 'rate');
+  hits.push(now);
+  createHits.set(ip, hits);
+  return () => {
+    const i = hits.indexOf(now);
+    if (i >= 0) hits.splice(i, 1);
+    if (!hits.length && createHits.get(ip) === hits) createHits.delete(ip);
+  };
 }
-const recordHit = (ip) => createHits.get(ip).push(Date.now());
 
 function decodePhoto(dataUrl) {
   const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(String(dataUrl || ''));
@@ -167,8 +182,13 @@ function decodePhoto(dataUrl) {
 }
 
 async function createListing(req, res) {
-  const ip = clientIp(req);
-  checkRate(ip);
+  const release = takeSlot(clientIp(req));
+  let created;
+  try { created = await saveListing(req); } catch (err) { release(); throw err; }
+  sendJson(req, res, created, 201);
+}
+
+async function saveListing(req) {
   const b = await readJson(req);
   const model = byId(b.model);
   if (!model) throw new HttpError(400, 'modelNotFound');
@@ -178,17 +198,18 @@ async function createListing(req, res) {
   const est = estimate(model, storage, answers, config.pricing);
   if (est.status === 'blocked') throw new HttpError(400, 'icloud');
 
-  const price = parseInt(String(b.price ?? '').replace(/\D/g, ''), 10);
-  if (!(price >= 10_000 && price <= 500_000_000)) throw new HttpError(400, 'price');
+  // The seller types the price in the currency they see (won or dollars); it is stored in won.
+  const amount = parseInt(String(b.price ?? '').replace(/\D/g, ''), 10);
+  const price = toKrw(amount, oneOf(CURRENCIES, b.currency) || 'KRW', config.pricing.krwPerUsd);
+  if (!(price >= 10_000 && price <= 100_000_000)) throw new HttpError(400, 'price');
   const region = REGIONS.includes(b.region) ? b.region : null;
   if (!region) throw new HttpError(400, 'region');
   const name = clean(b.name, 40);
   if (name.length < 2) throw new HttpError(400, 'name');
-  let phone = String(b.phone ?? '').replace(/\D/g, '');
-  if (phone.length === 9) phone = `998${phone}`;
-  if (!/^998\d{9}$/.test(phone)) throw new HttpError(400, 'phone');
-  const telegram = clean(b.telegram, 40).replace(/^@/, '').replace(/^https?:\/\/t\.me\//, '');
-  if (telegram && !/^[A-Za-z0-9_]{5,32}$/.test(telegram)) throw new HttpError(400, 'telegram');
+  const phone = koreanMobile(b.phone);
+  if (!phone) throw new HttpError(400, 'phone');
+  const kakao = kakaoContact(clean(b.kakao, 80));
+  if (kakao === null) throw new HttpError(400, 'kakao');
   const photos = Array.isArray(b.photos) ? b.photos.slice(0, config.maxPhotos).map(decodePhoto) : [];
 
   const token = randomBytes(18).toString('base64url');
@@ -196,11 +217,10 @@ async function createListing(req, res) {
     category: model.category, model_id: model.id, model_name: model.name, series: model.series, storage,
     color: model.colors.some((c) => c.k === b.color) ? b.color : null,
     grade: est.status === 'scrap' ? 'C' : est.grade || conditionGrade(answers),
-    battery: answers.battery || 0, answers, est_uzs: est.uzs || 0, price_uzs: price, region,
-    seller_name: name, phone: `+${phone}`, telegram: telegram || null,
+    battery: answers.battery || 0, answers, est_krw: est.krw || 0, price_krw: price, region,
+    seller_name: name, phone: `+82${phone.slice(1)}`, kakao: kakao || null,
     description: clean(b.description, 1000) || null,
     extras: Object.fromEntries(extrasFor(model).map((k) => [k, b.extras?.[k] ? 1 : 0])),
-    uzimei: applies('uzimei', model, answers) ? oneOf(UZIMEI, b.uzimei) || 'unknown' : null,
     token_hash: createHash('sha256').update(token).digest('hex'),
   });
   if (photos.length) {
@@ -213,8 +233,7 @@ async function createListing(req, res) {
     }
     db.setPhotos(id, urls);
   }
-  recordHit(ip);
-  sendJson(req, res, { id, token, url: `/phone/${id}?new=1` }, 201);
+  return { id, token, url: `/phone/${id}?new=1` };
 }
 
 // ---- routing ----------------------------------------------------------------------------------
@@ -252,7 +271,8 @@ async function route(req, res, url, L) {
     if (f.model) { f.series = ''; f.cat = byId(f.model).category; }
     if (f.series) f.cat = catOfSeries(f.series);
     if (f.min && f.max && f.min > f.max) [f.min, f.max] = [f.max, f.min];
-    const result = db.search(f);
+    // min/max are typed in the shown currency; listings are stored in won.
+    const result = db.search({ ...f, min: f.min && L.toKrw(f.min), max: f.max && L.toKrw(f.max) });
     f.min ||= ''; f.max ||= ''; f.bat ||= ''; f.page = f.page > 1 ? f.page : '';
     if (f.sort === 'new') f.sort = '';
     return sendHtml(req, res, catalogPage(L, { here, f, result, focusSearch: q.focus === 'q' }));
@@ -260,7 +280,8 @@ async function route(req, res, url, L) {
   let m;
   if (isGet && (m = /^\/phone\/(\d+)$/.exec(p))) {
     const l = db.getListing(+m[1]);
-    if (!l || l.status === 'deleted') return sendHtml(req, res, notFoundPage(L, { here }), 404);
+    // A model can disappear from the catalogue after a price-list re-import; its listings can't be drawn.
+    if (!l || l.status === 'deleted' || !byId(l.model_id)) return sendHtml(req, res, notFoundPage(L, { here }), 404);
     if (req.method === 'GET') db.addView(l.id);
     return sendHtml(req, res, listingPage(L, { here, l, similar: db.similar(l.model_id, l.series, l.id), isNew: q.new === '1' }));
   }
@@ -312,10 +333,14 @@ async function route(req, res, url, L) {
 
 const server = createServer(async (req, res) => {
   const t = Date.now();
-  const url = new URL(req.url, 'http://local');
+  // URL.parse returns null instead of throwing: a throw here, outside the try below, would crash the server.
+  const url = URL.parse(req.url, 'http://local');
+  if (!url) return send(req, res, 400, 'Bad request', MIME['.txt']);
   const { lang, remember } = pickLang(req, url);
-  const L = LANGS[lang];
-  if (remember) res.setHeader('Set-Cookie', langCookie(lang));
+  const { cur, remember: rememberCur } = pickCurrency(req, url, lang);
+  const L = { ...LANGS[lang], ...moneyPack(lang, cur, config.pricing.krwPerUsd) };
+  const cookies = [remember && langCookie(lang), rememberCur && curCookie(cur)].filter(Boolean);
+  if (cookies.length) res.setHeader('Set-Cookie', cookies);
   try {
     await route(req, res, url, L);
   } catch (err) {
@@ -334,5 +359,5 @@ server.listen(config.port, config.host, () => {
   console.log(`\n  ${config.siteName} is running`);
   console.log(`  On this computer:  http://localhost:${config.port}`);
   if (lan) console.log(`  On your phone (same Wi‑Fi):  http://${lan}:${config.port}`);
-  console.log(`  Rate: 1 KRW = ${config.pricing.krwToUzs} UZS, multiplier ${config.pricing.multiplier}\n`);
+  console.log(`  Rate: 1 USD = ${config.pricing.krwPerUsd} KRW, multiplier ${config.pricing.multiplier}\n`);
 });

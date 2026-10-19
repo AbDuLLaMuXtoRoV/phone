@@ -4,13 +4,13 @@ import assert from 'node:assert/strict';
 import { byId } from '../src/catalog.js';
 import { applies, faultsFor, stepsFor, batteryMode, extrasFor } from '../public/assets/categories.js';
 
-test('phones get IMEI and registration questions; Wi‑Fi iPads, Macs and Watches do not', () => {
+test('phones and cellular iPads get the IMEI question; Wi‑Fi iPads, Macs and Watches do not', () => {
   assert.ok(applies('imeiOk', byId('iphone-13')));
-  assert.ok(applies('uzimei', byId('galaxy-s24')));
+  assert.ok(applies('imeiOk', byId('galaxy-s24')));
   assert.ok(!applies('imeiOk', byId('ipad-air-11-m2'), { connectivity: 'wifi' }));
   assert.ok(applies('imeiOk', byId('ipad-air-11-m2'), { connectivity: 'cellular' }));
   assert.ok(!applies('imeiOk', byId('macbook-air-13-m2')));
-  assert.ok(!applies('uzimei', byId('apple-watch-ultra-2')));
+  assert.ok(!applies('imeiOk', byId('apple-watch-ultra-2')));
 });
 
 test('model features decide the extra questions', () => {

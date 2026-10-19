@@ -8,9 +8,12 @@ const part = (v) => (v == null || v === false ? '' : Array.isArray(v) ? v.map(pa
 export const html = (strings, ...vals) => raw(strings.reduce((out, s, i) => out + s + (i < vals.length ? part(vals[i]) : ''), ''));
 export const str = (h) => (h && h[SAFE] ? h.s : String(h ?? ''));
 
+// "+821012345678" → "010-1234-5678" (older 10-digit numbers: "011-123-4567").
 export const formatPhone = (p) => {
   const d = String(p).replace(/\D/g, '');
-  return d.length === 12 ? `+${d.slice(0, 3)} ${d.slice(3, 5)} ${d.slice(5, 8)} ${d.slice(8, 10)} ${d.slice(10)}` : p;
+  if (!d.startsWith('82')) return p;
+  const n = `0${d.slice(2)}`;
+  return n.length === 11 ? `${n.slice(0, 3)}-${n.slice(3, 7)}-${n.slice(7)}` : `${n.slice(0, 3)}-${n.slice(3, 6)}-${n.slice(6)}`;
 };
 
 // Lower-case and fold apostrophe variants, for search matching.

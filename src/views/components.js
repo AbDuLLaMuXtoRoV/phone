@@ -36,11 +36,11 @@ export function batteryText(L, l, { long = false } = {}) {
 export function estFor(l) {
   const model = byId(l.model_id);
   const e = model ? estimate(model, l.storage, l.answers, config.pricing) : null;
-  return e?.status === 'ok' || e?.status === 'scrap' ? e.uzs : null;
+  return e?.status === 'ok' || e?.status === 'scrap' ? e.krw : null;
 }
 
 export function verdictBadge(L, l) {
-  const v = priceVerdict(l.price_uzs, estFor(l));
+  const v = priceVerdict(l.price_krw, estFor(l));
   return v ? html`<span class="verdict verdict-${v.k}">${L.verdict[v.k]}</span>` : '';
 }
 
@@ -59,7 +59,7 @@ export function card(L, l, { eager = false } = {}) {
     <div class="card-body">
       <h3 class="card-title">${l.model_name}</h3>
       <p class="card-meta">${specLine(l)} ${gradeChip(L, l.grade)} <span class="bat">${icon('battery')}${batteryText(L, l)}</span></p>
-      <p class="card-price">${L.money(l.price_uzs)} <small>${L.currency}</small></p>
+      <p class="card-price">${L.price(l.price_krw)}</p>
       <p class="card-foot">${regionName(L, l.region)} · ${L.ago(l.created_at)}</p>
     </div>
   </a>

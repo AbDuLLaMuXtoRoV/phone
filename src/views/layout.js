@@ -2,16 +2,29 @@ import { html, raw, str } from '../util.js';
 import { icon, sprite } from './icons.js';
 import { asset } from '../assets.js';
 import { LANGS } from '../i18n.js';
+import { CURRENCIES, fromKrw } from '../../public/assets/money.js';
 import config from '../config.js';
 
 export const logo = raw(`<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="var(--brand)"/><rect x="10" y="6" width="12" height="20" rx="3" fill="none" stroke="#fff" stroke-width="2"/><path d="m13 16.5 2.2 2.2 4-4.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
 
 const LANG_LABEL = { en: 'EN', ko: '한국어' };
+const CUR_LABEL = { KRW: '₩', USD: '$' };
 
 // The same page in another language: current URL with ?lang= set (the server remembers it in a cookie).
 function langHref(here, code) {
   const u = new URL(here || '/', 'http://x');
   u.searchParams.set('lang', code);
+  return u.pathname + u.search;
+}
+
+// The same page in another currency. Price filters in the URL are in the shown currency, so convert them too.
+function curHref(L, here, code) {
+  const u = new URL(here || '/', 'http://x');
+  u.searchParams.set('cur', code);
+  for (const k of ['min', 'max']) {
+    const n = parseInt(String(u.searchParams.get(k) || '').replace(/D/g, ''), 10);
+    if (n > 0) u.searchParams.set(k, fromKrw(L.toKrw(n), code, L.krwPerUsd));
+  }
   return u.pathname + u.search;
 }
 
@@ -38,11 +51,22 @@ export function layout(L, { here, title, description, body, active = '', back = 
     { href: '/saved', key: 'fav', t: t.tabSaved, i: 'heart' },
     { href: '/my-listings', key: 'mine', t: t.tabMine, i: 'list' },
   ];
-  const langSwitch = html`<nav class="lang" aria-label="${t.langSwitch}">
-    ${Object.keys(LANGS).map((code) => html`<a href="${langHref(here, code)}" lang="${code}" hreflang="${code}" ${raw(code === L.lang ? 'aria-current="true"' : '')}>${LANG_LABEL[code]}</a>`)}
-  </nav>`;
+  // Language and currency share one small menu, so the phone header keeps room for the logo and search.
+  const prefs = html`<details class="prefs" data-prefs>
+    <summary aria-label="${t.prefsAria}"><span lang="${L.lang}">${LANG_LABEL[L.lang]}</span><span class="prefs-dot" aria-hidden="true">·</span><span>${CUR_LABEL[L.cur]}</span>${icon('down')}</summary>
+    <div class="prefs-menu">
+      <p class="prefs-h">${t.langTitle}</p>
+      <nav class="lang" aria-label="${t.langSwitch}">
+        ${Object.keys(LANGS).map((code) => html`<a href="${langHref(here, code)}" lang="${code}" hreflang="${code}" ${raw(code === L.lang ? 'aria-current="true"' : '')}>${LANG_LABEL[code]}</a>`)}
+      </nav>
+      <p class="prefs-h">${t.curTitle}</p>
+      <nav class="lang" aria-label="${t.curSwitch}">
+        ${CURRENCIES.map((code) => html`<a href="${curHref(L, here, code)}" rel="nofollow" ${raw(code === L.cur ? 'aria-current="true"' : '')}>${CUR_LABEL[code]} ${code}</a>`)}
+      </nav>
+    </div>
+  </details>`;
 
-  return '<!doctype html>' + str(html`<html lang="${L.lang}">
+  return '<!doctype html>' + str(html`<html lang="${L.lang}" data-cur="${L.cur}" data-rate="${L.krwPerUsd}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -76,7 +100,7 @@ ${sprite}
       ${icon('search')}
       <input type="search" name="q" placeholder="${t.searchPh}" aria-label="${t.searchAria}" enterkeyhint="search">
     </form>
-    ${langSwitch}
+    ${prefs}
     <a class="topbar-icon" href="/phones?focus=q" aria-label="${t.searchIcon}">${icon('search')}</a>
     <a class="btn btn-primary topbar-cta" href="/sell">${icon('plus')}${t.sellCta}</a>
   </div>

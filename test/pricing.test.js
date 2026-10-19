@@ -3,9 +3,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { byId, MODELS } from '../src/catalog.js';
-import { estimate, conditionGrade, priceVerdict, toUzs } from '../public/assets/pricing.js';
+import { estimate, conditionGrade, priceVerdict, unitsToKrw } from '../public/assets/pricing.js';
 
-const S = { unitKRW: 10000, krwToUzs: 8.5, multiplier: 1, roundTo: 1000 };
+const S = { unitKRW: 10000, multiplier: 1, roundTo: 1000 };
 const units = (id, storage, answers) => estimate(byId(id), storage, answers, S).units;
 
 test('every model from the price list has metadata and prices', () => {
@@ -34,7 +34,7 @@ test('devices without a price list get a condition grade but no price', () => {
   const r = estimate(s24u, '256 GB', { screen: 'A', body: 'A', inner: undefined }, S);
   assert.equal(r.status, 'unpriced');
   assert.equal(r.grade, 'A');
-  assert.equal(r.uzs, undefined);
+  assert.equal(r.krw, undefined);
   assert.equal(estimate(byId('galaxy-z-flip6'), '256 GB', { screen: 'A', body: 'A', inner: 'minor' }, S).grade, 'B+');
   assert.equal(estimate(byId('galaxy-z-flip6'), '256 GB', { screen: 'A', body: 'A', inner: 'damaged' }, S).grade, 'C');
   assert.equal(estimate(byId('apple-watch-series-10'), '46 mm', { icloudOff: 'no' }, S).status, 'blocked');
@@ -74,7 +74,7 @@ test('the full wizard scenario from the demo', () => {
   const r = estimate(byId('iphone-13-pro'), '256 GB', a, S);
   assert.equal(r.grade, 'B+');
   assert.equal(r.units, 46 - 8.5 - 3);
-  assert.equal(r.uzs, 2_933_000);
+  assert.equal(r.krw, 345_000);
 });
 
 test('never below scrap; dead phones get the scrap price; iCloud blocks', () => {
@@ -84,14 +84,14 @@ test('never below scrap; dead phones get the scrap price; iCloud blocks', () => 
   assert.equal(estimate(byId('iphone-15'), '128 GB', { icloudOff: 'no' }, S).status, 'blocked');
 });
 
-test('eSIM-only and grades', () => {
-  assert.equal(units('iphone-15', '128 GB', { sim: 'esim' }), 58 - 10);
+test('grade follows the worst cosmetic answer', () => {
   assert.equal(conditionGrade({ screen: 'A', body: 'A', backGlass: 'cracked' }), 'C');
   assert.equal(conditionGrade({ screen: 'A-', body: 'B+', lens: 'scratched' }), 'B+');
 });
 
 test('conversion and price verdicts', () => {
-  assert.equal(toUzs(45, S), 3_825_000);
+  assert.equal(unitsToKrw(45, S), 450_000);
+  assert.equal(unitsToKrw(45, { ...S, multiplier: 1.2 }), 540_000);
   assert.equal(priceVerdict(900_000, 1_000_000).k, 'deal');
   assert.equal(priceVerdict(1_050_000, 1_000_000).k, 'fair');
   assert.equal(priceVerdict(1_200_000, 1_000_000).k, 'high');

@@ -9,7 +9,6 @@ export const BASIC = {
   imeiOk: ['yes', 'no'],
   icloudOff: ['yes', 'no'], // "account lock removed": iCloud for Apple, Samsung/Google account for Galaxy
   refurbished: ['no', 'yes'],
-  sim: ['sim', 'esim'],
 };
 
 export const LOOKS = {
@@ -42,12 +41,30 @@ export const FAULT_KEYS = [
 
 export const PARTS = { items: ['screen', 'battery', 'camera'], options: ['none', 'genuine', 'unknown'] };
 export const EXTRAS = ['box', 'cable', 'receipt', 'pencil', 'keyboard', 'band'];
-export const UZIMEI = ['yes', 'no', 'unknown'];
 
+// Korea's 17 provinces and metropolitan cities.
 export const REGIONS = [
-  'tashkent-city', 'tashkent-region', 'andijan', 'bukhara', 'fergana', 'jizzakh', 'khorezm',
-  'namangan', 'navoi', 'kashkadarya', 'karakalpakstan', 'samarkand', 'syrdarya', 'surkhandarya',
+  'seoul', 'busan', 'daegu', 'incheon', 'gwangju', 'daejeon', 'ulsan', 'sejong', 'gyeonggi',
+  'gangwon', 'chungbuk', 'chungnam', 'jeonbuk', 'jeonnam', 'gyeongbuk', 'gyeongnam', 'jeju',
 ];
+
+// A Korean mobile number as typed ("010-1234-5678", "+82 10 1234 5678"…) → "01012345678", or null.
+export function koreanMobile(input) {
+  let d = String(input ?? '').replace(/\D/g, '');
+  if (d.startsWith('82')) d = `0${d.slice(2).replace(/^0/, '')}`;
+  // 010 numbers always have 11 digits; the old 011 and 016–019 ones can have 10.
+  return /^(010\d{8}|01[16-9]\d{7,8})$/.test(d) ? d : null;
+}
+
+// KakaoTalk contact: an ID (4–20 letters, numbers, . _ -) or an open chat link. '' when empty, null when invalid.
+export function kakaoContact(input) {
+  const v = String(input ?? '').trim();
+  if (!v) return '';
+  const link = /^(?:https?:\/\/)?open\.kakao\.com\/o\/([A-Za-z0-9]{4,20})\/?$/.exec(v);
+  if (link) return `https://open.kakao.com/o/${link[1]}`;
+  const id = v.replace(/^@/, '');
+  return /^[A-Za-z0-9._-]{4,20}$/.test(id) ? id : null;
+}
 
 // ---- wording helpers ----
 // Text may differ for Touch ID and Face ID devices: { face, touch }.

@@ -26,8 +26,8 @@ export function catalogPage(L, { here, f, result, focusSearch }) {
     f.storage && ['storage', f.storage],
     f.grade && ['grade', t.gradeOpts[f.grade].split(' · ')[0]],
     f.region && ['region', regionName(L, f.region)],
-    f.min && ['min', t.chipFrom(L.money(f.min))],
-    f.max && ['max', t.chipTo(L.money(f.max))],
+    f.min && ['min', t.chipFrom(L.fmt(f.min))],
+    f.max && ['max', t.chipTo(L.fmt(f.max))],
     f.bat && ['bat', t.chipBattery(f.bat)],
   ].filter(Boolean);
   const filterCount = active.filter(([k]) => k !== 'q').length;
@@ -81,6 +81,7 @@ export function catalogPage(L, { here, f, result, focusSearch }) {
         <div class="sheet-body">
           <input type="hidden" name="cat" value="${cat}">
           <input type="hidden" name="series" value="${f.series}">
+          <input type="hidden" name="cur" value="${L.cur}">
           <label class="field"><span>${t.model}</span>
             <select name="model">
               <option value="">${t.allModels}</option>
@@ -98,11 +99,11 @@ export function catalogPage(L, { here, f, result, focusSearch }) {
               ${GRADE_FILTER.map((v) => html`<label><input type="radio" name="grade" value="${v}" ${chk(f.grade, v)}><span>${v ? t.gradeOpts[v] : t.all}</span></label>`)}
             </div>
           </fieldset>
-          <fieldset class="field"><legend>${t.priceRange}</legend>
+          <fieldset class="field"><legend>${t.priceRange(L.currency)}</legend>
             <div class="range">
-              <input type="text" inputmode="numeric" name="min" value="${f.min ? L.money(f.min) : ''}" placeholder="${t.from}" aria-label="${t.minAria}" data-money>
+              <input type="text" inputmode="numeric" name="min" value="${f.min ? L.group(f.min) : ''}" placeholder="${t.from}" aria-label="${t.minAria}" data-money>
               <span>—</span>
-              <input type="text" inputmode="numeric" name="max" value="${f.max ? L.money(f.max) : ''}" placeholder="${t.to}" aria-label="${t.maxAria}" data-money>
+              <input type="text" inputmode="numeric" name="max" value="${f.max ? L.group(f.max) : ''}" placeholder="${t.to}" aria-label="${t.maxAria}" data-money>
             </div>
           </fieldset>
           <label class="field"><span>${t.battery}</span>
@@ -127,7 +128,9 @@ export function catalogPage(L, { here, f, result, focusSearch }) {
             <span class="muted">${page} / ${pages}</span>
             ${page < pages ? html`<a class="btn btn-ghost" href="/phones${qs({ ...f, page: page + 1 })}">${t.next} ${icon('right')}</a>` : html`<span></span>`}
           </nav>` : ''}`
-        : empty(t.emptyTitle, t.emptyText, html`<a class="btn btn-ghost" href="/phones">${t.emptyBtn}</a>`)}
+        : active.length || cat
+          ? empty(t.emptyTitle, t.emptyText, html`<a class="btn btn-ghost" href="/phones">${t.emptyBtn}</a>`)
+          : empty(t.noListingsTitle, t.noListingsText, html`<a class="btn btn-primary" href="/sell">${icon('plus')}${t.sellCta}</a>`)}
     </section>
   </div>
 </form>`,

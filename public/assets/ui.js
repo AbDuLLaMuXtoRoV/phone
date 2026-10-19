@@ -1,10 +1,12 @@
-// Small helpers shared by app.js and sell.js, plus the language pack for this page.
+// Small helpers shared by app.js and sell.js, plus the language pack for this page (with the visitor's currency).
+import { moneyPack } from './money.js';
 
 export const $ = (s, el = document) => el.querySelector(s);
 export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 
 const lang = ['en', 'ko'].includes(document.documentElement.lang) ? document.documentElement.lang : 'en';
-export const L = (await import(`./i18n/${lang}.js`)).default;
+const root = document.documentElement;
+export const L = { ...(await import(`./i18n/${lang}.js`)).default, ...moneyPack(lang, root.dataset.cur, +root.dataset.rate) };
 
 export const digits = (s) => String(s || '').replace(/\D/g, '');
 export const fold = (s) => String(s || '').toLowerCase().replace(/[ʻʼ'`‘’]/g, "'").replace(/\s+/g, ' ').trim();

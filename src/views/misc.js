@@ -3,7 +3,7 @@ import { icon } from './icons.js';
 import { layout } from './layout.js';
 import { cards, empty, phoneArt } from './components.js';
 import { MODELS_NEWEST, seriesOf, seriesLabel, PRICE_SOURCE } from '../catalog.js';
-import { toUzs } from '../../public/assets/pricing.js';
+import { unitsToKrw } from '../../public/assets/pricing.js';
 import config from '../config.js';
 
 export function pricesPage(L, { here }) {
@@ -34,15 +34,15 @@ export function pricesPage(L, { here }) {
           <table class="ptable">
             <thead><tr><th scope="col">${t.colStorage}</th><th scope="col">${t.colIdeal}</th><th scope="col">${t.colUsed}</th></tr></thead>
             <tbody>${m.storages.map((r) => html`<tr><th scope="row">${r.label}</th>
-              <td>${typeof r.A === 'number' ? L.money(toUzs(r.A, p)) : '—'}</td>
-              <td>${L.money(toUzs(r.base, p))}</td></tr>`)}</tbody>
+              <td>${typeof r.A === 'number' ? L.price(unitsToKrw(r.A, p)) : '—'}</td>
+              <td>${L.price(unitsToKrw(r.base, p))}</td></tr>`)}</tbody>
           </table>
           <a class="btn btn-ghost btn-sm" href="/sell?model=${m.id}">${t.exact} ${icon('right')}</a>
         </div>
       </article>`)}`)}
     <p class="empty-inline" data-filter-empty hidden>${t.noModelShort}</p>
   </div>
-  <p class="muted small">${t.pricesNote}</p>
+  <p class="muted small">${t.pricesNote} ${t.rateNote(L.group(L.krwPerUsd))}</p>
 </div>`,
   });
 }

@@ -4,12 +4,16 @@
 
 export const CATEGORY_KEYS = ['iphone', 'samsung', 'ipad', 'macbook', 'watch'];
 
+// Brands and their device categories, in the order shown. A customer picks the brand first.
+export const BRANDS = { apple: ['iphone', 'ipad', 'watch', 'macbook'], samsung: ['samsung'] };
+export const brandOf = (cat) => Object.keys(BRANDS).find((b) => BRANDS[b].includes(cat));
+
 // battery: percent = health % (iPhone, Watch) · level = good/ok/weak (Samsung, iPad) · mac = condition + cycle count
 // config: specs asked on the second step (storage = storage, SSD or case size depending on the category)
 export const CATEGORIES = {
   iphone: {
     kind: 'phone', battery: 'percent', parts: true,
-    config: ['storage', 'color', 'sim'],
+    config: ['storage', 'color'],
     looks: ['screen', 'body', 'backGlass', 'lens', 'bent'],
     faults: ['biometric', 'camera', 'wifi', 'mic', 'speaker', 'charging', 'vibration', 'buttons', 'trueTone', 'cameraButton'],
     extras: ['box', 'cable', 'receipt'],
@@ -52,8 +56,7 @@ export function applies(key, model, a = {}) {
   switch (key) {
     case 'backGlass': return model.category === 'watch' || !!model.glassBack;
     case 'inner': case 'hinge': return !!model.fold;
-    case 'sim': return !!model.esimQ;
-    case 'imeiOk': case 'uzimei': return c.kind === 'phone' || (model.category === 'ipad' && a.connectivity === 'cellular');
+    case 'imeiOk': return c.kind === 'phone' || (model.category === 'ipad' && a.connectivity === 'cellular');
     case 'trueTone': return !!model.trueTone;
     case 'cameraButton': return !!model.cameraButton;
     case 'spen': return !!model.spen;

@@ -1,18 +1,12 @@
 // English text. ko.js must have the same keys (checked by test/i18n.test.js). Shared by the server and the browser.
 // A question or fault can be reworded for one category with a `${key}_${category}` entry (e.g. icloudOff_samsung).
 
-const money = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-const trim = (s) => s.replace(/\.?0+$/, '');
-const short = (n) => (n >= 1e6 ? `${trim((n / 1e6).toFixed(n >= 1e7 ? 1 : 2))}M` : `${Math.round(n / 1000)}K`);
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default {
   lang: 'en',
   switchTo: { code: 'ko', label: '한국어' },
-  currency: 'UZS',
-  money,
-  price: (n) => `${money(n)} UZS`,
-  range: (a, b) => `${short(a)}–${short(b)} UZS`,
+  // Prices (L.price, L.currency…) come from money.js, merged in for each visitor's currency.
   date: (d) => `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`,
   ago(ts, now = Date.now()) {
     const s = Math.max(0, (now - ts) / 1000);
@@ -26,16 +20,18 @@ export default {
   },
 
   cats: { iphone: 'iPhone', samsung: 'Samsung', ipad: 'iPad', macbook: 'MacBook', watch: 'Apple Watch' },
+  brands: { apple: 'Apple', samsung: 'Samsung' },
 
   t: {
     // layout
     skip: 'Skip to content',
     titleDefault: 'Buy and sell used Apple and Samsung devices',
-    descDefault: 'Sell or buy a used iPhone, Galaxy, iPad, MacBook or Apple Watch. Instant iPhone prices, condition reports, iCloud check, contact by phone or Telegram.',
+    descDefault: 'Sell or buy a used iPhone, Galaxy, iPad, MacBook or Apple Watch. Instant iPhone prices, condition reports, iCloud check, contact by phone or KakaoTalk.',
     back: 'Back', home: 'home', navMain: 'Main menu',
     navPhones: 'Devices', navPrices: 'Prices', navSaved: 'Saved', navMine: 'My listings',
     searchPh: 'Search, e.g. 15 Pro or S24', searchAria: 'Search devices', searchIcon: 'Search',
-    sellCta: 'Sell a device', langSwitch: 'Change language',
+    sellCta: 'Sell a device', langSwitch: 'Change language', curSwitch: 'Change currency',
+    prefsAria: 'Language and currency', langTitle: 'Language', curTitle: 'Currency',
     footerBlurb: 'A transparent marketplace for used iPhones, Galaxy phones, iPads, MacBooks and Apple Watches.',
     footerNav: 'More', footerPhones: 'Devices', footerSell: 'Sell a device', footerPrices: 'iPhone price guide', footerSafety: 'Safe trading', footerFaq: 'FAQ',
     footerNote: 'Prices are estimates based on what sellers report and don’t replace checking the device in person.',
@@ -45,9 +41,12 @@ export default {
     eyebrow: 'Apple & Samsung devices · transparent prices',
     heroTitle: 'What’s your device worth? Find out in ', heroHighlight: '1 minute', heroTitleEnd: '',
     lead: 'Pick your device and describe its condition. iPhones get an instant price; listing is free for everything.',
-    heroPh: 'e.g. 15 Pro or S24', heroAria: 'Device model', heroBtn: 'Get price', heroChipsAria: 'Choose a device',
+    heroPh: 'e.g. 15 Pro or S24', heroAria: 'Device model', heroBtn: 'Get price', heroChipsAria: 'Choose a brand',
+    pickTitle: (brand) => `Which ${brand} device are you selling?`, modelsN: (n) => `${n} models`,
     heroAltText: 'Looking to buy?', heroAltLink: (n) => `See ${n} listings`,
     demoLabel: 'Estimated price', demoFaceId: 'Face ID', demoWorks: 'works', demoScreen: 'Screen', demoNoScratches: 'no scratches', demoParts: 'Parts', demoOriginal: 'original',
+    noListingsTitle: 'No listings yet', noListingsText: 'Be the first to list a device. It takes a minute and it’s free.',
+    statTypes: 'device types',
     statsAria: 'In numbers', statListings: 'active listings', statModels: 'device models', statFreeValue: 'Free', statFree: 'to list', statTimeValue: '~1 min', statTime: 'to get a price',
     categoriesTitle: 'Browse by category', listingsN: (n) => (n === 1 ? '1 listing' : `${n} listings`),
     latestTitle: 'New listings', seeAll: 'See all',
@@ -56,13 +55,13 @@ export default {
       ['Pick your device', 'iPhone, Galaxy, iPad, MacBook or Apple Watch, any model.'],
       ['Describe the condition', 'Simple questions: screen, body, battery, faults.'],
       ['See the price', 'iPhones get an instant price with every deduction shown; for other devices you set it.'],
-      ['Post your listing', 'Add photos; buyers call you or message you on Telegram.'],
+      ['Post your listing', 'Add photos; buyers call you or message you on KakaoTalk.'],
     ],
     gradesTitle: 'Condition grades', gradesSub: 'Every listing uses the same scale, so buyers know exactly what they get.',
     safetyTitle: 'Safe trading',
     tips: [
       ['Account lock checked', 'Devices still locked to iCloud or a Samsung account can’t be listed.'],
-      ['IMEI registration shown', 'Each phone listing says whether it’s registered in Uzbekistan.'],
+      ['Check the IMEI', 'Dial *#06# on the phone: the number must match the box and Settings.'],
       ['Meet in a busy place', 'Check the device in your hands before you pay.'],
       ['Never pay in advance', '“I’ll deliver it, send the money first” is the most common scam.'],
     ],
@@ -72,7 +71,6 @@ export default {
       ['Does listing cost anything?', 'No. Getting a price and posting a listing are free, and you don’t need an account.'],
       ['Why must I sign out of iCloud or my Samsung account?', 'A device still linked to iCloud (Find My) or a Samsung/Google account stays locked for its new owner. Requiring sign-out also blocks stolen devices, so locked devices can’t be listed.'],
       ['Where do I find battery health?', 'iPhone: Settings → Battery → Battery Health → “Maximum Capacity”. Apple Watch: Settings → Battery → Battery Health. Mac: System Settings → Battery → Battery Health. For Galaxy and iPad, choose how long the battery lasts compared to new.'],
-      ['Why does IMEI registration matter?', 'In Uzbekistan, a phone whose IMEI isn’t registered is blocked on local SIM cards. Buyers see the status on every phone listing.'],
       ['Which devices can I sell?', 'iPhone (6 to 17 Pro Max, SE 2 and SE 3), Samsung Galaxy S, Z, A and Note, iPad, MacBook Air and Pro with Apple silicon, and Apple Watch. Automatic prices are available for iPhone; for other devices you set the price.'],
     ],
     ctaTitle: 'Want to sell your device?', ctaText: 'Getting a price is free and needs no sign-up.', ctaBtn: 'Get started',
@@ -83,10 +81,10 @@ export default {
     all: 'All', catAria: 'Device type', removeFilter: (t) => `Remove filter: ${t}`, clear: 'Clear',
     filtersTitle: 'Filters', close: 'Close', model: 'Model', allModels: 'All models', storage: 'Storage', condition: 'Condition',
     gradeOpts: { a: 'A · Ideal, excellent', b: 'B · Good, fair', c: 'C · Worn' },
-    priceRange: 'Price, UZS', from: 'from', to: 'to', minAria: 'Minimum price', maxAria: 'Maximum price',
-    chipFrom: (v) => `from ${v} UZS`, chipTo: (v) => `up to ${v} UZS`, chipBattery: (b) => `Battery ${b}%+`,
+    priceRange: (c) => `Price, ${c}`, from: 'from', to: 'to', minAria: 'Minimum price', maxAria: 'Maximum price',
+    chipFrom: (v) => `from ${v}`, chipTo: (v) => `up to ${v}`, chipBattery: (b) => `Battery ${b}%+`,
     battery: 'Battery', batteryOpts: { '': 'Any', 80: '80% or more', 85: '85% or more', 90: '90% or more' },
-    region: 'Region', allRegions: 'All of Uzbekistan', show: 'Show results',
+    region: 'Region', allRegions: 'All of Korea', show: 'Show results',
     pagesAria: 'Pages', prev: 'Previous', next: 'Next',
     emptyTitle: 'Nothing found', emptyText: 'Try fewer filters or a different model.', emptyBtn: 'Clear filters',
 
@@ -98,8 +96,7 @@ export default {
     soldNotice: 'This device has been sold.',
     photosAria: 'Photos', photoAlt: (title, i) => `${title}, photo ${i}`, noPhotos: 'The seller hasn’t added photos yet',
     systemEst: 'System estimate:', howCalc: 'How the estimate was calculated', estTotal: 'System estimate',
-    factCondition: 'Condition', factBattery: 'Battery', unknown: 'Unknown', factStorage: 'Storage', factColor: 'Color', factSim: 'SIM',
-    factImei: 'IMEI registration', regYes: 'Registered', regNo: 'Not registered',
+    factCondition: 'Condition', factBattery: 'Battery', unknown: 'Unknown', factStorage: 'Storage', factColor: 'Color',
     factRam: 'Memory', factSize: 'Size', factMaterial: 'Case', factConnectivity: 'Connectivity', cycles: (n) => `${n} cycles`,
     reportTitle: 'Condition report', reportNote: 'Filled in by the seller. Check the device yourself when you meet.',
     basics: 'Basic checks', looksTitle: 'Body and screen', funcsTitle: 'Functions', partsTitle: 'Parts', repairTitle: 'Repairs',
@@ -114,13 +111,23 @@ export default {
     safeTips: ['Meet in a busy place and check the device in your hands.', 'For phones, dial *#06# to check the IMEI and compare it with the box.', 'Make sure the device is signed out of iCloud or its Samsung account.', 'Never pay in advance.'],
     manage: 'Manage listing', reactivate: 'Mark as available', markSold: 'Mark as sold', remove: 'Delete',
     confirmDelete: 'Delete this listing for good?', error: 'Something went wrong',
-    call: 'Call', telegram: 'Message on Telegram', telegramShort: 'Telegram', similar: 'Similar listings',
+    call: 'Call', kakao: 'KakaoTalk', kakaoChat: 'Chat on KakaoTalk', kakaoId: (id) => `KakaoTalk ID: ${id}`,
+    kakaoCopied: 'KakaoTalk ID copied. In KakaoTalk: Add friend → by ID, then paste it.', similar: 'Similar listings',
     metaDesc: (title, grade, battery, region, price) => `${title}, ${grade.toLowerCase()} condition${battery ? `, battery ${battery}%` : ''}. ${region}. ${price}.`,
 
     // sell
     sellTitle: 'Price and sell your device', sellDesc: 'Describe your device’s condition and list it for free. iPhones get an instant price.', sellHeader: 'Sell a device',
     stepNames: { model: 'Device', config: 'Specs & color', basic: 'Basic checks', looks: 'Body & glass', screen: 'Screen & battery', faults: 'Functions', parts: 'Parts', result: 'Price', details: 'Listing' },
     noscript: 'JavaScript must be enabled to sell a device.',
+    change: 'Change', resultPending: 'Answer the questions above to see the result.',
+    // example pictures behind the "?" on the screen and body questions
+    exShow: 'Examples', exTitle: (q) => `${q}: examples`,
+    exTip: {
+      screen: 'Turn the screen off and tilt it under a lamp, then choose the picture closest to your device.',
+      body: 'Look at the corners and edges under a light, then choose the picture closest to your device.',
+    },
+    exChoose: 'Choose this', exChosen: 'Selected', exDrawing: 'Illustration',
+    exPhoto: (by, license) => `Photo: ${by}, ${license}`, exAlt: (grade, text) => `Example of grade ${grade}: ${text}`,
     whichPhone: 'What are you selling?', modelSearchPh: 'Search all models', modelSearchAria: 'Search models',
     seriesFilterAria: 'Filter by series', modelsAria: 'Models', noModel: 'No such model.',
     storageQ: 'Storage', ramQ: 'Memory (RAM)', ssdQ: 'Storage (SSD)', sizeQ: 'Case size', colorQ: 'Color', basicTitle: 'Basic checks',
@@ -137,8 +144,8 @@ export default {
     setOwnPrice: 'Set your price — automatic estimates are iPhone-only for now.', barGrade: 'Condition',
     detailsTitle: 'Listing details', photos: 'Photos', photosUpTo: (n) => `(up to ${n})`,
     photosHint: 'Shoot the front, back, sides and the battery screen. Listings with photos sell faster.', addPhoto: 'Add photo',
-    askPrice: 'Asking price', choose: 'Choose', name: 'Your name', namePh: 'e.g. Jasur', phone: 'Your phone number',
-    telegramLabel: 'Telegram', optional: '(optional)', inBox: 'What’s in the box?', desc: 'Description',
+    askPrice: 'Asking price', choose: 'Choose', name: 'Your name', namePh: 'e.g. Minjun', phone: 'Your phone number',
+    kakaoLabel: 'KakaoTalk', kakaoPh: 'KakaoTalk ID or open chat link', optional: '(optional)', inBox: 'What’s in the box?', desc: 'Description',
     descPh: 'e.g. Always kept in a case, never opened for repair.',
     confirm: 'By tapping “Publish” you confirm the information is accurate.',
     summaryAria: 'Your choices', pickModel: 'Choose a device', estPrice: 'Estimated price',
@@ -153,8 +160,9 @@ export default {
     offline: 'No internet connection. Please try again.', saveFailed: 'Couldn’t save the listing',
 
     // other pages
-    pricesTitle: 'iPhone prices', pricesDesc: 'Used iPhone prices in UZS for every model and storage size, in ideal and used condition.',
-    pricesH1: 'Used iPhone prices', pricesSub: (date) => `Estimated prices in ideal (A) and used condition, in UZS. Updated ${date}.`,
+    pricesTitle: 'iPhone prices', pricesDesc: 'Used iPhone prices in Korean won and US dollars for every model and storage size, in ideal and used condition.',
+    pricesH1: 'Used iPhone prices', pricesSub: (date) => `Estimated prices in ideal (A) and used condition. Updated ${date}.`,
+    rateNote: (r) => `Dollar prices use 1 USD = ${r} KRW.`,
     pricesSearch: 'Search models', colStorage: 'Storage', colIdeal: 'Ideal', colUsed: 'Used', exact: 'Get an exact price',
     pricesNote: '“Ideal”: no scratches, battery 90%+. “Used”: the base price whatever the grade. The exact price depends on faults and replaced parts. Automatic prices are available for iPhone only for now.',
     noModelShort: 'No such model.',
@@ -182,7 +190,6 @@ export default {
     icloudOff_watch: { title: 'Have you unpaired it from your iPhone?', hint: 'iPhone Watch app → All Watches → ⓘ → Unpair Apple Watch. This removes Activation Lock.', opts: { yes: 'Yes, unpaired', no: 'Not yet' } },
     icloudOff_samsung: { title: 'Have you signed out of your Samsung and Google accounts?', hint: 'Settings → Accounts and backup → Manage accounts → remove both. Otherwise the phone stays locked after a reset (FRP).' },
     refurbished: { title: 'Is it a refurbished or demo unit?', opts: { no: 'No', yes: 'Yes' } },
-    sim: { title: 'SIM type', hint: 'iPhone 14 and newer sold in the US have no SIM tray.', opts: { sim: 'SIM card + eSIM', esim: 'eSIM only (US model)' } },
     connectivity: { title: 'Connectivity', opts: { wifi: 'Wi‑Fi', cellular: 'Wi‑Fi + Cellular', gps: 'GPS' } },
     connectivity_watch: { opts: { cellular: 'GPS + Cellular' } },
     material: { title: 'Case material', opts: { aluminum: 'Aluminum', steel: 'Stainless steel', titanium: 'Titanium' } },
@@ -219,7 +226,6 @@ export default {
     batteryLevel_ipad: { hint: 'How long does it last on a charge compared to new?' },
     macBattery: { title: 'Battery condition', hint: 'System Settings → Battery → Battery Health.', opts: { normal: 'Normal', service: 'Service recommended' } },
     repair: { title: 'Has it ever been repaired?', opts: { none: 'Never', official: 'At an official service centre', thirdParty: 'At a third-party repair shop' } },
-    uzimei: { title: 'Is the IMEI registered in Uzbekistan?', hint: 'An unregistered phone gets blocked on local SIM cards.', opts: { yes: 'Yes', no: 'No', unknown: 'Not sure' } },
   },
 
   // q = seller question, s = short name in the buyer's report
@@ -262,9 +268,9 @@ export default {
   verdict: { deal: 'Good deal', fair: 'Fair price', high: 'Above market', sold: 'Sold' },
 
   regions: {
-    'tashkent-city': 'Tashkent City', 'tashkent-region': 'Tashkent Region', andijan: 'Andijan', bukhara: 'Bukhara', fergana: 'Fergana',
-    jizzakh: 'Jizzakh', khorezm: 'Khorezm', namangan: 'Namangan', navoi: 'Navoi', kashkadarya: 'Kashkadarya',
-    karakalpakstan: 'Karakalpakstan', samarkand: 'Samarkand', syrdarya: 'Syrdarya', surkhandarya: 'Surkhandarya',
+    seoul: 'Seoul', busan: 'Busan', daegu: 'Daegu', incheon: 'Incheon', gwangju: 'Gwangju', daejeon: 'Daejeon', ulsan: 'Ulsan',
+    sejong: 'Sejong', gyeonggi: 'Gyeonggi', gangwon: 'Gangwon', chungbuk: 'North Chungcheong', chungnam: 'South Chungcheong',
+    jeonbuk: 'North Jeolla', jeonnam: 'South Jeolla', gyeongbuk: 'North Gyeongsang', gyeongnam: 'South Gyeongsang', jeju: 'Jeju',
   },
 
   colors: {
@@ -305,7 +311,6 @@ export default {
       case 'unknown': return `Unknown part message (${l.n})`;
       case 'seItems': return `Replaced parts / low battery (${l.n})`;
       case 'refurbished': return 'Refurbished or demo unit';
-      case 'esim': return 'eSIM-only model';
       default: return l.k;
     }
   },
@@ -314,7 +319,7 @@ export default {
     notFound: 'Page not found', badRequest: 'Invalid request', tooLarge: 'Upload too large. Use fewer photos.',
     incomplete: 'Please answer all the condition questions.', modelNotFound: 'Model not found.', storage: 'Choose the specs.',
     icloud: 'A device with an account lock can’t be sold.', price: 'Enter a valid price.', region: 'Choose a region.', name: 'Enter your name.',
-    phone: 'Enter the full phone number: +998 XX XXX XX XX.', telegram: 'Invalid Telegram username.',
+    phone: 'Enter a mobile number, e.g. 010-1234-5678.', kakao: 'Enter a KakaoTalk ID (4–20 letters, numbers, . _ -) or an open chat link.',
     photoFormat: 'Unsupported photo format.', photoSize: 'Photo is too large.', photoBroken: 'Photo file is damaged.',
     rate: 'Too many listings. Please try again later.', status: 'Invalid status.', forbidden: 'You can’t manage this listing.',
     server: 'Server error. Please try again shortly.',

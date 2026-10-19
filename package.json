@@ -2,7 +2,7 @@
   "name": "fonbozor",
   "version": "0.1.0",
   "private": true,
-  "description": "Mobile-first marketplace for used iPhones in Uzbekistan, with instant price estimates in UZS.",
+  "description": "Mobile-first marketplace for used Apple and Samsung devices, with instant iPhone price estimates in Korean won or US dollars.",
   "type": "module",
   "engines": { "node": ">=22.13" },
   "scripts": {

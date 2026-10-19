@@ -1,8 +1,9 @@
 import { html } from '../util.js';
 import { icon } from './icons.js';
 import { layout } from './layout.js';
-import { cards, phoneArt, gradeChip } from './components.js';
-import { MODELS, byId, CATEGORY_SHOWCASE } from '../catalog.js';
+import { cards, phoneArt, gradeChip, empty } from './components.js';
+import { MODELS, byId, CATEGORY_SHOWCASE, seriesLabel } from '../catalog.js';
+import { BRANDS } from './brands.js';
 import { GRADE_KEYS } from '../../public/assets/questions.js';
 import { CATEGORY_KEYS } from '../../public/assets/categories.js';
 import { estimate } from '../../public/assets/pricing.js';
@@ -10,6 +11,32 @@ import config from '../config.js';
 
 const TIP_ICONS = ['shield', 'sim', 'pin', 'alert'];
 const showcaseArt = (cat) => { const [id, color] = CATEGORY_SHOWCASE[cat]; return phoneArt(byId(id), color); };
+
+// Brand chooser: a bottom sheet on phones, a dialog on desktop. Works without JS through #pick-<brand>.
+function brandPicker(L, b) {
+  const t = L.t;
+  return html`<div class="picker" id="pick-${b.key}" role="dialog" aria-modal="true" aria-labelledby="pick-${b.key}-title">
+  <a class="pick-backdrop" href="#" data-close-picker tabindex="-1" aria-hidden="true"></a>
+  <div class="pick-panel">
+    <div class="pick-head">
+      <h2 id="pick-${b.key}-title">${b.logo}<span class="sr">${L.brands[b.key]}</span></h2>
+      <a class="icon-btn" href="#" data-close-picker aria-label="${t.close}">${icon('close')}</a>
+    </div>
+    <p class="muted pick-sub">${t.pickTitle(L.brands[b.key])}</p>
+    <div class="pick-grid">
+      ${b.items.map((it) => {
+        const [id, color] = it.show;
+        const models = MODELS.filter((m) => (it.cat ? m.category === it.cat : m.series === it.series));
+        return html`<a class="pick-tile" href="/sell?${it.cat ? `cat=${it.cat}` : `series=${it.series}`}">
+          <span class="pick-art">${phoneArt(byId(id), color)}</span>
+          <b>${it.cat ? L.cats[it.cat] : seriesLabel(it.series)}</b>
+          <span class="muted small">${t.modelsN(models.length)}</span>
+        </a>`;
+      })}
+    </div>
+  </div>
+</div>`;
+}
 
 export function homePage(L, { here, latest, total, counts }) {
   const t = L.t;
@@ -30,10 +57,10 @@ export function homePage(L, { here, latest, total, counts }) {
         <input name="q" type="search" placeholder="${t.heroPh}" aria-label="${t.heroAria}" enterkeyhint="go" autocomplete="off">
         <button class="btn btn-primary" type="submit">${t.heroBtn}</button>
       </form>
-      <div class="chips chips-scroll" aria-label="${t.heroChipsAria}">
-        ${CATEGORY_KEYS.map((c) => html`<a class="chip" href="/sell?cat=${c}">${L.cats[c]}</a>`)}
+      <div class="chips brand-chips" aria-label="${t.heroChipsAria}">
+        ${BRANDS.map((b) => html`<a class="chip chip-brand" href="#pick-${b.key}" data-open-picker aria-haspopup="dialog" aria-label="${L.brands[b.key]}">${b.logo}</a>`)}
       </div>
-      <a class="hero-alt" href="/phones">${t.heroAltText} <b>${t.heroAltLink(total)}</b> ${icon('right')}</a>
+      ${total ? html`<a class="hero-alt" href="/phones">${t.heroAltText} <b>${t.heroAltLink(total)}</b> ${icon('right')}</a>` : ''}
     </div>
     <div class="hero-demo" aria-hidden="true">
       <div class="demo-card">
@@ -42,7 +69,7 @@ export function homePage(L, { here, latest, total, counts }) {
           <p class="demo-model">${sample.name} · 256 GB</p>
           <p class="demo-tags">${gradeChip(L, 'A', { long: true })} <span class="bat">${icon('battery')}93%</span></p>
           <p class="demo-label">${t.demoLabel}</p>
-          <p class="demo-price">${L.price(sampleEst.uzs)}</p>
+          <p class="demo-price">${L.price(sampleEst.krw)}</p>
           <ul class="demo-lines">
             <li><span>${icon('check')}${t.demoFaceId}</span><span>${t.demoWorks}</span></li>
             <li><span>${icon('check')}${t.demoScreen}</span><span>${t.demoNoScratches}</span></li>
@@ -56,7 +83,9 @@ export function homePage(L, { here, latest, total, counts }) {
 
 <section class="wrap" aria-label="${t.statsAria}">
   <div class="stats">
-    <div><b>${total}</b><span>${t.statListings}</span></div>
+    ${total
+      ? html`<div><b>${total}</b><span>${t.statListings}</span></div>`
+      : html`<div><b>${CATEGORY_KEYS.length}</b><span>${t.statTypes}</span></div>`}
     <div><b>${MODELS.length}</b><span>${t.statModels}</span></div>
     <div><b>${t.statFreeValue}</b><span>${t.statFree}</span></div>
     <div><b>${t.statTimeValue}</b><span>${t.statTime}</span></div>
@@ -69,14 +98,16 @@ export function homePage(L, { here, latest, total, counts }) {
     ${CATEGORY_KEYS.map((c) => html`<a class="cat-tile" href="/phones?cat=${c}">
       <span class="cat-art">${showcaseArt(c)}</span>
       <b>${L.cats[c]}</b>
-      <span class="muted small">${t.listingsN(counts[c] || 0)}</span>
+      <span class="muted small">${counts[c] ? t.listingsN(counts[c]) : t.modelsN(MODELS.filter((m) => m.category === c).length)}</span>
     </a>`)}
   </div>
 </section>
 
 <section class="wrap section">
-  <div class="section-head"><h2>${t.latestTitle}</h2><a class="link" href="/phones">${t.seeAll} ${icon('right')}</a></div>
-  ${cards(L, latest)}
+  <div class="section-head"><h2>${t.latestTitle}</h2>${latest.length ? html`<a class="link" href="/phones">${t.seeAll} ${icon('right')}</a>` : ''}</div>
+  ${latest.length
+    ? cards(L, latest)
+    : html`<div class="block first-listing">${empty(t.noListingsTitle, t.noListingsText, html`<a class="btn btn-primary" href="/sell">${icon('plus')}${t.sellCta}</a>`)}</div>`}
 </section>
 
 <section class="wrap section">
@@ -114,6 +145,7 @@ export function homePage(L, { here, latest, total, counts }) {
     <div><h2>${t.ctaTitle}</h2><p>${t.ctaText}</p></div>
     <a class="btn btn-light btn-lg" href="/sell">${t.ctaBtn} ${icon('right')}</a>
   </div>
-</section>`,
+</section>
+${BRANDS.map((b) => brandPicker(L, b))}`,
   });
 }

@@ -19,14 +19,13 @@ const NOTE_DEDUCTIONS = {
   lensCracked: 2, // "Camera lens discoloration = -2"
   bentLight: 3, bentSevere: 15, // "Body damage / bulging body: -3 to -15"
   refurbished: 3, // "Overseas version / demo unit = -3"
-  esimOnly: 10, // "eSIM overseas version = -10"
 };
 // The iPhone 17 rows have no scrap price; use the latest listed one (iPhone 16 series).
 const SCRAP_FALLBACK = 5;
 const FAULT_KEYS = ['biometric', 'camera', 'wifi', 'mic', 'trueTone', 'speaker', 'charging', 'vibration', 'buttons', 'cameraButton'];
 
 export const DEFAULTS = {
-  powersOn: 'yes', imeiOk: 'yes', icloudOff: 'yes', refurbished: 'no', sim: 'sim',
+  powersOn: 'yes', imeiOk: 'yes', icloudOff: 'yes', refurbished: 'no',
   screen: 'A', body: 'A', backGlass: 'ok', lens: 'ok', bent: 'none',
   glass: 'ok', display: 'ok', battery: 100,
   faults: [], parts: { screen: 'none', battery: 'none', camera: 'none' },
@@ -54,8 +53,9 @@ export function conditionGrade(answers) {
   return g;
 }
 
-export function toUzs(units, s) {
-  const raw = units * s.unitKRW * s.krwToUzs * (s.multiplier || 1);
+// Price-list units → won, rounded to settings.roundTo won. money.js shows won in dollars when asked.
+export function unitsToKrw(units, s) {
+  const raw = units * s.unitKRW * (s.multiplier || 1);
   const step = s.roundTo || 1000;
   return Math.max(0, Math.round(raw / step) * step);
 }
@@ -88,8 +88,8 @@ function basePrice(row, grade, battery, batteryAsItem) {
 }
 
 /**
- * @returns {{status:'ok'|'scrap'|'blocked'|'unpriced', reason?:string, grade?:string, units?:number, uzs?:number,
- *            low?:number, high?:number, lines?:{k:string, units:number, uzs:number}[], floored?:boolean}}
+ * @returns {{status:'ok'|'scrap'|'blocked'|'unpriced', reason?:string, grade?:string, units?:number, krw?:number,
+ *            low?:number, high?:number, lines?:{k:string, units:number, krw:number}[], floored?:boolean}}
  * 'unpriced': the category has no price list yet (everything except iPhone) — only the condition grade is known.
  */
 export function estimate(model, storageLabel, answers, settings) {
@@ -149,7 +149,6 @@ export function estimate(model, storageLabel, answers, settings) {
   }
 
   if (a.refurbished === 'yes') take({ k: 'refurbished' }, NOTE_DEDUCTIONS.refurbished);
-  if (model.esimQ && a.sim === 'esim') take({ k: 'esim' }, NOTE_DEDUCTIONS.esimOnly);
 
   let total = lines.reduce((s, l) => s + l.units, 0);
   const floored = total < scrap;
@@ -158,12 +157,12 @@ export function estimate(model, storageLabel, answers, settings) {
 }
 
 function finish(status, grade, lines, units, floored, s) {
-  const uzs = toUzs(units, s);
-  const band = (k) => Math.round((uzs * k) / 10000) * 10000;
+  const krw = unitsToKrw(units, s);
+  const band = (k) => Math.round((krw * k) / 10000) * 10000;
   return {
-    status, grade, units, uzs, floored,
+    status, grade, units, krw, floored,
     low: band(0.95), high: band(1.05),
-    lines: lines.map((l) => ({ ...l, uzs: toUzs(Math.abs(l.units), s) * Math.sign(l.units) })),
+    lines: lines.map((l) => ({ ...l, krw: unitsToKrw(Math.abs(l.units), s) * Math.sign(l.units) })),
   };
 }
 

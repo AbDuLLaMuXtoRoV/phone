@@ -65,11 +65,15 @@ export function listingPage(L, { here, l, similar, isNew }) {
   const est = estimate(model, l.storage, l.answers, config.pricing);
   const priced = est.status === 'ok' || est.status === 'scrap';
   const sysEst = estFor(l);
-  const verdict = priceVerdict(l.price_uzs, sysEst);
+  const verdict = priceVerdict(l.price_krw, sysEst);
   const rep = report(L, model, l.answers);
   const faultsCount = a.untested ? 0 : rep.funcs.filter((r) => r.state === 'bad').length;
   const extras = extrasFor(model).filter((k) => l.extras?.[k]);
-  const tg = l.telegram ? l.telegram.replace(/^@/, '') : null;
+  // KakaoTalk: an open chat link opens the chat; a plain ID is copied, to add the seller as a friend.
+  const kakaoLink = l.kakao?.startsWith('https://open.kakao.com/') ? l.kakao : null;
+  const kakaoBtn = (cls, label) => (kakaoLink
+    ? html`<a class="btn btn-kakao ${cls}" href="${kakaoLink}" target="_blank" rel="noopener">${icon('chat')}${label}</a>`
+    : l.kakao ? html`<button class="btn btn-kakao ${cls}" type="button" data-copy="${l.kakao}" data-copied="${t.kakaoCopied}">${icon('chat')}${label}</button>` : '');
   const sold = l.status === 'sold';
   const title = `${l.model_name}, ${specLine(l)}`;
   const photos = l.photos.length ? l.photos : null;
@@ -79,8 +83,8 @@ export function listingPage(L, { here, l, similar, isNew }) {
 
   return layout(L, {
     here,
-    title: `${title} — ${L.price(l.price_uzs)}`,
-    description: t.metaDesc(title, L.grades[l.grade].name, l.battery, region, L.price(l.price_uzs)),
+    title: `${title} — ${L.price(l.price_krw)}`,
+    description: t.metaDesc(title, L.grades[l.grade].name, l.battery, region, L.price(l.price_krw)),
     back: { href: '/phones', label: l.model_name },
     focus: true,
     body: html`
@@ -108,12 +112,13 @@ export function listingPage(L, { here, l, similar, isNew }) {
       </div>
 
       <div class="price-box">
-        <p class="price-big">${L.price(l.price_uzs)}</p>
+        <p class="price-big">${L.price(l.price_krw)}</p>
+        <p class="price-alt">≈ ${L.alt(l.price_krw)}</p>
         ${verdict && !sold ? html`<p class="verdict-line"><span class="verdict verdict-${verdict.k}">${L.verdict[verdict.k]}</span> ${t.systemEst} <b>${L.price(sysEst)}</b></p>` : ''}
         ${priced ? html`<details class="breakdown">
           <summary>${t.howCalc} ${icon('down')}</summary>
-          <ul>${est.lines.map((x) => html`<li><span>${L.line(x, model)}</span><b class="${x.units < 0 ? 'neg' : ''}">${x.units < 0 ? '−' : ''}${L.price(Math.abs(x.uzs))}</b></li>`)}
-            <li class="total"><span>${t.estTotal}</span><b>${L.price(est.uzs)}</b></li></ul>
+          <ul>${est.lines.map((x) => html`<li><span>${L.line(x, model)}</span><b class="${x.units < 0 ? 'neg' : ''}">${x.units < 0 ? '−' : ''}${L.price(Math.abs(x.krw))}</b></li>`)}
+            <li class="total"><span>${t.estTotal}</span><b>${L.price(est.krw)}</b></li></ul>
         </details>` : ''}
       </div>
 
@@ -125,8 +130,6 @@ export function listingPage(L, { here, l, similar, isNew }) {
         ${a.material && cat === 'watch' ? fact(t.factMaterial, opt(L, 'material', a.material, cat).t) : ''}
         ${a.connectivity ? fact(t.factConnectivity, opt(L, 'connectivity', a.connectivity, cat).t) : ''}
         ${fact(t.factColor, color ? html`<i class="swatch" style="--c:${color.hex}"></i>${colorName(L, color.k)}` : '—')}
-        ${model.esimQ ? fact(t.factSim, qText(L, 'sim', cat).opts[a.sim] || '—') : ''}
-        ${applies('uzimei', model, a) ? fact(t.factImei, l.uzimei === 'yes' ? t.regYes : l.uzimei === 'no' ? t.regNo : t.unknown, l.uzimei === 'yes' ? 'ok-text' : 'warn-text') : ''}
       </div>
 
       <section class="block">
@@ -151,7 +154,7 @@ export function listingPage(L, { here, l, similar, isNew }) {
       </section>
 
       <section class="block seller">
-        <div class="avatar" aria-hidden="true">${l.seller_name.slice(0, 1)}</div>
+        <div class="avatar" aria-hidden="true">${[...l.seller_name][0]}</div>
         <div><b>${l.seller_name}</b><p class="muted small">${icon('pin')}${region} · ${icon('eye')}${t.views(l.views)}</p></div>
       </section>
 
@@ -172,10 +175,11 @@ export function listingPage(L, { here, l, similar, isNew }) {
     </div>
 
     <aside class="contact-card">
-      <p class="price-big">${L.price(l.price_uzs)}</p>
+      <p class="price-big">${L.price(l.price_krw)}</p>
+      <p class="price-alt">≈ ${L.alt(l.price_krw)}</p>
       ${verdict && !sold ? html`<p class="verdict-line"><span class="verdict verdict-${verdict.k}">${L.verdict[verdict.k]}</span></p>` : ''}
       <a class="btn btn-primary btn-lg btn-block" href="tel:${l.phone}">${icon('phone')}${formatPhone(l.phone)}</a>
-      ${tg ? html`<a class="btn btn-tg btn-lg btn-block" href="https://t.me/${tg}" target="_blank" rel="noopener">${icon('send')}${t.telegram}</a>` : ''}
+      ${kakaoBtn('btn-lg btn-block', kakaoLink ? t.kakaoChat : t.kakaoId(l.kakao))}
       <button class="btn btn-ghost btn-block" type="button" data-fav="${l.id}" aria-pressed="false">${icon('heart')}<span data-fav-label>${t.save}</span></button>
       <p class="muted small">${icon('user')}${l.seller_name} · ${region}</p>
     </aside>
@@ -186,7 +190,7 @@ export function listingPage(L, { here, l, similar, isNew }) {
 
 <div class="actionbar">
   <button class="icon-btn icon-btn-lg" type="button" data-fav="${l.id}" aria-pressed="false" aria-label="${t.save}">${icon('heart')}</button>
-  ${tg ? html`<a class="btn btn-tg btn-lg" href="https://t.me/${tg}" target="_blank" rel="noopener">${icon('send')}${t.telegramShort}</a>` : ''}
+  ${kakaoBtn('btn-lg', t.kakao)}
   <a class="btn btn-primary btn-lg" href="tel:${l.phone}">${icon('phone')}${t.call}</a>
 </div>`,
   });

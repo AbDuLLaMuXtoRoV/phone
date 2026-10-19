@@ -62,7 +62,8 @@ if (listing) {
         const r = await fetch(`/api/listings/${id}/status`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: mine.token, status }),
         });
-        if (!r.ok) throw new Error((await r.json()).error);
+        // A proxy or tunnel error page is HTML, not JSON: fall back to the generic message.
+        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || L.t.error);
         if (status === 'deleted') {
           store.set(MINE, store.get(MINE, []).filter((x) => x.id !== id));
           location.href = '/my-listings';
@@ -125,7 +126,7 @@ document.addEventListener('input', (e) => {
   const el = e.target;
   if (!el.matches?.('[data-money]')) return;
   const d = digits(el.value).slice(0, 10);
-  el.value = d ? L.money(+d) : '';
+  el.value = d ? L.group(+d) : '';
 });
 
 // ---- client-side list filter (prices page) ----
@@ -158,6 +159,74 @@ $('#catalog-form')?.addEventListener('submit', (e) => {
     const empty = el.type === 'radio' ? el.checked && el.value === '' : el.value === '' || (el.name === 'sort' && el.value === 'new');
     if (empty) el.disabled = true;
   }
+  // The currency only matters for a price filter.
+  const f = e.target.elements;
+  if (f.cur && !f.min.value && !f.max.value) f.cur.disabled = true;
   // Re-enable after navigation starts, so going back shows a working form.
   setTimeout(() => { for (const el of e.target.elements) el.disabled = false; }, 0);
 });
+
+// ---- listing page: copy the seller's KakaoTalk ID (to add them as a friend in KakaoTalk) ----
+async function copyText(text) {
+  try {
+    // Some in-app browsers never settle this promise, so give up after a moment and use the older way.
+    await Promise.race([navigator.clipboard.writeText(text), new Promise((_, fail) => setTimeout(fail, 1200))]);
+    return true;
+  } catch { /* fall through */ }
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.cssText = 'position:fixed;top:0;opacity:0';
+  document.body.append(ta);
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch { /* not supported */ }
+  ta.remove();
+  return ok;
+}
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-copy]');
+  if (!b) return;
+  // Without clipboard access the ID itself is shown, to copy by hand.
+  toast((await copyText(b.dataset.copy)) ? b.dataset.copied : b.dataset.copy);
+});
+
+// ---- language & currency menu in the header: close it on an outside tap or Escape ----
+const prefs = $('[data-prefs]');
+if (prefs) {
+  document.addEventListener('click', (e) => { if (prefs.open && !prefs.contains(e.target)) prefs.open = false; });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && prefs.open) { prefs.open = false; prefs.querySelector('summary').focus(); }
+  });
+}
+
+// ---- brand chooser on the home page: opens as a bottom sheet (phones) or dialog (desktop) ----
+let openPicker = null;
+function closePicker() {
+  if (!openPicker) return;
+  const { opener } = openPicker.dataset;
+  openPicker.classList.remove('is-open');
+  openPicker = null;
+  document.documentElement.style.overflow = '';
+  if (location.hash.startsWith('#pick-')) history.replaceState(null, '', location.pathname + location.search);
+  if (opener) $(`[href="#${opener}"]`)?.focus({ preventScroll: true });
+}
+document.addEventListener('click', (e) => {
+  const trigger = e.target.closest('[data-open-picker]');
+  if (trigger) {
+    const picker = $(trigger.getAttribute('href'));
+    if (!picker) return;
+    e.preventDefault();
+    closePicker();
+    picker.dataset.opener = picker.id;
+    picker.classList.add('is-open');
+    openPicker = picker;
+    document.documentElement.style.overflow = 'hidden';
+    picker.querySelector('.pick-tile')?.focus({ preventScroll: true });
+    return;
+  }
+  if (e.target.closest('[data-close-picker]')) { e.preventDefault(); closePicker(); }
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePicker(); });
+// Coming back with the browser's back button: don't leave a stale sheet open over the page.
+window.addEventListener('pageshow', (e) => { if (e.persisted) closePicker(); });

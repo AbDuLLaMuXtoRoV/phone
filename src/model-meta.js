@@ -53,9 +53,9 @@ export const COLORS = {
 
 // cam: camera layout for the drawn image — single | dualv (vertical pill) | dual (square bump) | triple | air | plateau
 // bio: touch | face. glassBack: has a glass back. trueTone: has True Tone.
-// cameraButton: has the Camera Control button. esimQ: ask if it is an eSIM-only (US) unit.
+// cameraButton: has the Camera Control button.
 const M = (series, year, cam, bio, colors, extra = {}) => ({
-  series, year, cam, bio, colors, glassBack: true, trueTone: true, cameraButton: false, esimQ: false, ...extra,
+  series, year, cam, bio, colors, glassBack: true, trueTone: true, cameraButton: false, ...extra,
 });
 const OLD = { glassBack: false, trueTone: false };
 
@@ -85,25 +85,24 @@ export const MODEL_META = {
   'iphone-13': M('13', 2021, 'dual', 'face', ['midnight', 'starlight', 'blue', 'pink', 'green', 'red']),
   'iphone-13-pro': M('13', 2021, 'triple', 'face', ['graphite', 'silver', 'gold', 'sierra', 'alpine']),
   'iphone-13-pro-max': M('13', 2021, 'triple', 'face', ['graphite', 'silver', 'gold', 'sierra', 'alpine']),
-  'iphone-14': M('14', 2022, 'dual', 'face', ['midnight', 'starlight', 'blue', 'purple', 'yellow', 'red'], { esimQ: true }),
-  'iphone-14-plus': M('14', 2022, 'dual', 'face', ['midnight', 'starlight', 'blue', 'purple', 'yellow', 'red'], { esimQ: true }),
-  'iphone-14-pro': M('14', 2022, 'triple', 'face', ['spaceblack', 'silver', 'gold', 'deeppurple'], { esimQ: true }),
-  'iphone-14-pro-max': M('14', 2022, 'triple', 'face', ['spaceblack', 'silver', 'gold', 'deeppurple'], { esimQ: true }),
-  'iphone-15': M('15', 2023, 'dual', 'face', ['black', 'blue', 'green', 'yellow', 'pink'], { esimQ: true }),
-  'iphone-15-plus': M('15', 2023, 'dual', 'face', ['black', 'blue', 'green', 'yellow', 'pink'], { esimQ: true }),
-  'iphone-15-pro': M('15', 2023, 'triple', 'face', ['natural', 'bluetitan', 'whitetitan', 'blacktitan'], { esimQ: true }),
-  'iphone-15-pro-max': M('15', 2023, 'triple', 'face', ['natural', 'bluetitan', 'whitetitan', 'blacktitan'], { esimQ: true }),
-  'iphone-16': M('16', 2024, 'dualv', 'face', ['black', 'white', 'pink', 'teal', 'ultramarine'], { esimQ: true, cameraButton: true }),
-  'iphone-16-plus': M('16', 2024, 'dualv', 'face', ['black', 'white', 'pink', 'teal', 'ultramarine'], { esimQ: true, cameraButton: true }),
-  'iphone-16-pro': M('16', 2024, 'triple', 'face', ['blacktitan', 'whitetitan', 'natural', 'deserttitan'], { esimQ: true, cameraButton: true }),
-  'iphone-16-pro-max': M('16', 2024, 'triple', 'face', ['blacktitan', 'whitetitan', 'natural', 'deserttitan'], { esimQ: true, cameraButton: true }),
-  'iphone-16e': M('16', 2025, 'single', 'face', ['black', 'white'], { esimQ: true }),
-  'iphone-17': M('17', 2025, 'dualv', 'face', ['black', 'white', 'lavender', 'sage', 'mistblue'], { esimQ: true, cameraButton: true }),
-  // iPhone Air is eSIM-only everywhere, so the list price already assumes it — no eSIM question.
+  'iphone-14': M('14', 2022, 'dual', 'face', ['midnight', 'starlight', 'blue', 'purple', 'yellow', 'red']),
+  'iphone-14-plus': M('14', 2022, 'dual', 'face', ['midnight', 'starlight', 'blue', 'purple', 'yellow', 'red']),
+  'iphone-14-pro': M('14', 2022, 'triple', 'face', ['spaceblack', 'silver', 'gold', 'deeppurple']),
+  'iphone-14-pro-max': M('14', 2022, 'triple', 'face', ['spaceblack', 'silver', 'gold', 'deeppurple']),
+  'iphone-15': M('15', 2023, 'dual', 'face', ['black', 'blue', 'green', 'yellow', 'pink']),
+  'iphone-15-plus': M('15', 2023, 'dual', 'face', ['black', 'blue', 'green', 'yellow', 'pink']),
+  'iphone-15-pro': M('15', 2023, 'triple', 'face', ['natural', 'bluetitan', 'whitetitan', 'blacktitan']),
+  'iphone-15-pro-max': M('15', 2023, 'triple', 'face', ['natural', 'bluetitan', 'whitetitan', 'blacktitan']),
+  'iphone-16': M('16', 2024, 'dualv', 'face', ['black', 'white', 'pink', 'teal', 'ultramarine'], { cameraButton: true }),
+  'iphone-16-plus': M('16', 2024, 'dualv', 'face', ['black', 'white', 'pink', 'teal', 'ultramarine'], { cameraButton: true }),
+  'iphone-16-pro': M('16', 2024, 'triple', 'face', ['blacktitan', 'whitetitan', 'natural', 'deserttitan'], { cameraButton: true }),
+  'iphone-16-pro-max': M('16', 2024, 'triple', 'face', ['blacktitan', 'whitetitan', 'natural', 'deserttitan'], { cameraButton: true }),
+  'iphone-16e': M('16', 2025, 'single', 'face', ['black', 'white']),
+  'iphone-17': M('17', 2025, 'dualv', 'face', ['black', 'white', 'lavender', 'sage', 'mistblue'], { cameraButton: true }),
   'iphone-air': M('17', 2025, 'air', 'face', ['spaceblack', 'cloud', 'lightgold', 'sky'], { cameraButton: true }),
-  'iphone-17-pro': M('17', 2025, 'plateau', 'face', ['orange', 'deepblue', 'silver'], { esimQ: true, cameraButton: true }),
-  'iphone-17-pro-max': M('17', 2025, 'plateau', 'face', ['orange', 'deepblue', 'silver'], { esimQ: true, cameraButton: true }),
+  'iphone-17-pro': M('17', 2025, 'plateau', 'face', ['orange', 'deepblue', 'silver'], { cameraButton: true }),
+  'iphone-17-pro-max': M('17', 2025, 'plateau', 'face', ['orange', 'deepblue', 'silver'], { cameraButton: true }),
 };
 
 // Used for a model that appears in a future price list before it is added above.
-export const DEFAULT_META = M('?', new Date().getFullYear(), 'triple', 'face', ['black', 'white', 'silver'], { esimQ: true, cameraButton: true });
+export const DEFAULT_META = M('?', new Date().getFullYear(), 'triple', 'face', ['black', 'white', 'silver'], { cameraButton: true });

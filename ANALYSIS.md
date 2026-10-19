@@ -33,11 +33,10 @@ rendered DOM, the network bundles or a screenshot. Things that could not be veri
 | 16 | **Light grey text on white** for release dates, review text and grade descriptions: hard to read outdoors on a phone. | Screenshots. |
 | 17 | **Too many things in one product**: phones, tablets, watches, laptops, earbuds, graphics cards and mobile-plan sign-up (123 app routes). Someone who only wants to sell a phone has to find their way through all of it. | Route list in the app bundle. |
 
-### Not a fit for Uzbekistan (by design, but it matters for us)
+### Market note
 
-Korean only, KRW only, Kakao/Naver/Apple login, Korean postcode search and couriers. No Telegram (the main
-messenger in Uzbekistan), no Uzbek or Russian, and nothing about IMEI registration, which decides whether
-a phone works with a local SIM card in Uzbekistan.
+This analysis was first written for a site in Uzbekistan. Since October 2026 the site targets Korea, like
+fongabi.com itself: prices in won (or dollars), Korean phone numbers, Korean regions and KakaoTalk.
 
 ### Could not verify
 
@@ -52,10 +51,10 @@ online estimate. Both need a real account and a shipped device.
 | 6–7 Console errors, unpinned CDN | No external dependencies at all: zero npm packages, nothing loaded from a CDN. |
 | 8–9 Popup, ads first | No popups or banners. The first screen asks one question: “How much is your phone worth?” with a model search box and one-tap popular models. |
 | 10 Zoom disabled | Zoom allowed; text and contrast follow WCAG AA; touch targets are at least 44 px; works from 320 px wide phones up to desktop, with no sideways scrolling (tested at 320, 360, 390 and 1440 px). |
-| 11 Sell page is a landing page | “Sotish” opens directly on the first question. One short step per screen, big tap targets, a live price in the bottom bar from the moment the model is chosen. The phone’s back button moves between steps, and answers survive a reload. |
+| 11 Sell page is a landing page | “Sell” opens directly on the questions, all on one page: brand, device, model, then every condition question below, so any answer can be changed by scrolling up. Big tap targets, a live price in the bottom bar from the moment the model is chosen, and answers survive a reload. |
 | 12 Floating widgets | Nothing floats over content; the only fixed elements are the bottom tab bar (or the action bar on focused pages). |
 | 13 Actions aren’t links | Every page and action is a real link or form; listings, filters and searches have shareable URLs. |
-| 14–15 Three grade scales, hidden deductions | One scale everywhere: **A, A−, B+, B, C**, taken from the price list and explained in plain language. The estimate shows **every line**: base price for the grade, then each deduction in UZS. Buyers see the same breakdown and a “fair / cheap / expensive” badge comparing the asking price with the system estimate. A price guide (`/prices`) lists every model and storage. |
+| 14–15 Three grade scales, hidden deductions | One scale everywhere: **A, A−, B+, B, C**, taken from the price list and explained in plain language. The estimate shows **every line**: base price for the grade, then each deduction in won or dollars. Buyers see the same breakdown and a “fair / cheap / expensive” badge comparing the asking price with the system estimate. A price guide (`/prices`) lists every model and storage. |
 | 16 Low contrast | Body text ≥ 4.5:1 contrast in light and dark mode. |
 | 17 Too many categories | Five clear categories (iPhone, Samsung, iPad, MacBook, Apple Watch), picked with one tap; nothing unrelated such as graphics cards or mobile plans. Each category only asks the questions that make sense for that device. |
-| Uzbekistan fit | English and Korean interface (switchable), prices in UZS, all 14 regions, contact by phone call or Telegram, no registration needed. Listings show **IMEI registration status**. **iCloud must be off** to list a phone (stops stolen and locked phones). eSIM-only (US) units are flagged and priced accordingly. |
+| Korea fit | English and Korean interface, prices in Korean won or US dollars (both switchable), Korean mobile numbers (010-1234-5678), all 17 provinces and cities, contact by phone call or KakaoTalk (ID or open chat link), no registration needed. **iCloud must be off** to list a phone (stops stolen and locked phones). |
